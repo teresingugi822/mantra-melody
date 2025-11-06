@@ -1,0 +1,219 @@
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { GenreSelector } from "@/components/genre-selector";
+import { Loader2, Music, ArrowLeft, Sparkles, Sun, Moon, Zap } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { Genre } from "@shared/schema";
+
+type PlaylistType = "morning" | "daytime" | "bedtime" | null;
+
+export default function Create() {
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const [mantraText, setMantraText] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<PlaylistType>(null);
+
+  const generateSongMutation = useMutation({
+    mutationFn: async (data: { text: string; genre: Genre; playlistType?: string }) => {
+      return await apiRequest("POST", "/api/songs/generate", data);
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/songs"] });
+      if (selectedPlaylist) {
+        queryClient.invalidateQueries({ queryKey: [`/api/playlists/${selectedPlaylist}/songs`] });
+      }
+      toast({
+        title: "Song Created!",
+        description: "Your mantra song has been generated successfully.",
+      });
+      navigate(`/library`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate your mantra song. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleGenerate = () => {
+    if (!mantraText.trim()) {
+      toast({
+        title: "Mantra Required",
+        description: "Please write your mantra before generating a song.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedGenre) {
+      toast({
+        title: "Genre Required",
+        description: "Please select a music genre for your mantra.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    generateSongMutation.mutate({
+      text: mantraText,
+      genre: selectedGenre,
+      playlistType: selectedPlaylist || undefined,
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="gap-2"
+            data-testid="button-back-home"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Button>
+          <div className="flex items-center gap-2">
+            <Music className="h-6 w-6 text-primary" />
+            <span className="text-xl font-bold font-serif">Mantra Music</span>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/library")}
+            data-testid="button-view-library"
+          >
+            View Library
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="container max-w-4xl px-4 md:px-6 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold font-serif mb-4" data-testid="text-page-title">
+            Create Your Mantra Song
+          </h1>
+          <p className="text-lg text-muted-foreground" data-testid="text-page-subtitle">
+            Write your goals, affirmations, or daily mantras and transform them into personalized music
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Write Your Mantra
+            </CardTitle>
+            <CardDescription>
+              Be authentic and personal. Express what you want to achieve, overcome, or become.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Mantra Input */}
+            <div className="space-y-2">
+              <label htmlFor="mantra" className="text-sm font-medium">
+                Your Mantra
+              </label>
+              <Textarea
+                id="mantra"
+                placeholder="I am strong, capable, and ready to embrace new opportunities. Each day brings me closer to my goals..."
+                value={mantraText}
+                onChange={(e) => setMantraText(e.target.value)}
+                className="min-h-[200px] resize-none text-base"
+                data-testid="textarea-mantra"
+              />
+              <p className="text-xs text-muted-foreground text-right" data-testid="text-character-count">
+                {mantraText.length} characters
+              </p>
+            </div>
+
+            {/* Genre Selector */}
+            <GenreSelector
+              value={selectedGenre}
+              onChange={setSelectedGenre}
+            />
+
+            {/* Playlist Assignment (Optional) */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Add to Playlist (Optional)</label>
+              <div className="grid grid-cols-3 gap-3">
+                <Button
+                  type="button"
+                  variant={selectedPlaylist === "morning" ? "default" : "outline"}
+                  className="h-auto py-3 flex flex-col items-center gap-2 hover-elevate"
+                  onClick={() => setSelectedPlaylist(selectedPlaylist === "morning" ? null : "morning")}
+                  data-testid="button-playlist-morning"
+                >
+                  <Sun className="h-6 w-6" />
+                  <span className="text-xs">Morning</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={selectedPlaylist === "daytime" ? "default" : "outline"}
+                  className="h-auto py-3 flex flex-col items-center gap-2 hover-elevate"
+                  onClick={() => setSelectedPlaylist(selectedPlaylist === "daytime" ? null : "daytime")}
+                  data-testid="button-playlist-daytime"
+                >
+                  <Zap className="h-6 w-6" />
+                  <span className="text-xs">Daytime</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={selectedPlaylist === "bedtime" ? "default" : "outline"}
+                  className="h-auto py-3 flex flex-col items-center gap-2 hover-elevate"
+                  onClick={() => setSelectedPlaylist(selectedPlaylist === "bedtime" ? null : "bedtime")}
+                  data-testid="button-playlist-bedtime"
+                >
+                  <Moon className="h-6 w-6" />
+                  <span className="text-xs">Bedtime</span>
+                </Button>
+              </div>
+            </div>
+
+            {/* Generate Button */}
+            <Button
+              size="lg"
+              className="w-full"
+              onClick={handleGenerate}
+              disabled={generateSongMutation.isPending}
+              data-testid="button-generate"
+            >
+              {generateSongMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Generating Your Song...
+                </>
+              ) : (
+                <>
+                  <Music className="mr-2 h-5 w-5" />
+                  Generate Mantra Song
+                </>
+              )}
+            </Button>
+
+            {generateSongMutation.isPending && (
+              <div className="text-center space-y-2">
+                <p className="text-sm text-muted-foreground" data-testid="text-generating-status">
+                  Creating lyrics and composing your personalized mantra song...
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  This may take up to 30 seconds
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

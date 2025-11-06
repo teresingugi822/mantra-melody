@@ -1,0 +1,117 @@
+# Mantra Music
+
+## Overview
+
+Mantra Music is a web application that transforms personal mantras, affirmations, and goals into personalized songs. Users write their mantras, select a music genre (soul, blues, hip-hop, reggae, pop, or acoustic), and the application generates custom songs with AI-powered lyrics and music. The app organizes songs into curated playlists (Morning Motivation, Daytime Energy, Bedtime Calm) or allows users to build their own library.
+
+**Core Purpose**: Create an emotionally uplifting, transformation-focused experience that empowers users through personalized music generated from their own words.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+
+**Framework**: React 18+ with TypeScript, using Vite as the build tool and development server.
+
+**UI Component System**: Shadcn/ui components built on Radix UI primitives with Tailwind CSS for styling. The design follows a "new-york" style variant with custom theming based on HSL color variables for light/dark mode support.
+
+**Routing**: Client-side routing using Wouter (lightweight React Router alternative) with routes for:
+- Home page (`/`)
+- Create/compose page (`/create`)
+- Library view (`/library`)
+- Playlist views (`/playlists/:type`)
+
+**State Management**: TanStack Query (React Query) for server state management, API requests, and caching. No global state management library - component state and React Query handle all data flow.
+
+**Design System**: Custom design guidelines inspired by wellness apps (Calm/Headspace) and music platforms (Spotify), emphasizing:
+- Soothing gradients and uplifting imagery
+- Typography: Inter (UI/body) and Playfair Display (mantras/headings) from Google Fonts
+- Spacing based on Tailwind's standardized units (2, 4, 6, 8, 12, 16, 20, 24)
+- Glass-morphism effects with backdrop-blur
+- Responsive layouts with mobile-first approach
+
+### Backend Architecture
+
+**Server Framework**: Express.js running on Node.js with TypeScript.
+
+**API Design**: RESTful API with JSON responses:
+- `GET /api/songs` - Retrieve all songs
+- `GET /api/playlists/:type/songs` - Get songs by playlist type
+- `POST /api/songs/generate` - Generate new song from mantra
+
+**Request Handling**: Custom middleware for logging, JSON parsing with raw body capture for webhooks, and request timing.
+
+**Development Setup**: Vite middleware integration for HMR (Hot Module Replacement) in development, with separate build output for production.
+
+### Data Layer
+
+**ORM**: Drizzle ORM for type-safe database queries and schema management.
+
+**Database Schema**:
+- `mantras` table - Stores user-written text with UUID primary keys
+- `songs` table - Generated songs linked to mantras, includes title, genre, lyrics, audio URL, status (pending/generating/completed/error), and optional playlist type
+- `playlists` table - Curated and custom playlists with name, type, and description
+
+**Migration Strategy**: Drizzle Kit for schema migrations stored in `/migrations` directory.
+
+**Type Safety**: Zod schemas generated from Drizzle schema for runtime validation, ensuring type consistency between database, API, and frontend.
+
+### AI Integration
+
+**Lyrics Generation**: OpenAI GPT-5 integration via Replit's AI Integrations service (proxy that eliminates need for personal API keys). The system transforms user mantras into song lyrics while preserving the core message and emotional intent.
+
+**Music Generation**: Suno AI API integration for text-to-music synthesis. Configurable with fallback to mock audio URLs when API key is not available. Uses the "chirp-v3-5" model for music generation.
+
+**Workflow**:
+1. User submits mantra text and genre selection
+2. Backend creates mantra record in database
+3. OpenAI generates song title and lyrics based on mantra
+4. Song record created with "generating" status
+5. Suno API generates audio from lyrics and genre
+6. Song record updated with audio URL and "completed" status
+
+### Authentication & Sessions
+
+Currently no authentication system implemented - the application operates as a single-user experience. Session management infrastructure (connect-pg-simple) is available in dependencies but not actively used.
+
+## External Dependencies
+
+### Third-Party APIs
+
+**Replit AI Integrations (OpenAI Proxy)**:
+- Environment: `AI_INTEGRATIONS_OPENAI_BASE_URL`, `AI_INTEGRATIONS_OPENAI_API_KEY`
+- Purpose: GPT-5 model access for lyric generation
+- Managed service eliminates need for personal OpenAI API keys
+
+**Suno AI Music Generation**:
+- Environment: `SUNO_API_KEY`
+- Purpose: Text-to-music synthesis
+- Endpoint: `https://api.aimlapi.com/v2/generate/audio/suno-ai/clip`
+- Graceful degradation to mock audio when unavailable
+
+### Database
+
+**PostgreSQL via Neon**:
+- Environment: `DATABASE_URL`
+- Connection: Neon Serverless driver with WebSocket support
+- Schema managed through Drizzle ORM
+- Connection pooling via @neondatabase/serverless
+
+### UI Component Libraries
+
+**Radix UI**: Unstyled, accessible component primitives for building the design system (accordion, dialog, dropdown, slider, toast, etc.)
+
+**Embla Carousel**: Touch-friendly carousel component for potential playlist/song browsing features
+
+### Development Tools
+
+**Vite Plugins**:
+- Runtime error modal overlay
+- Replit-specific dev tools (cartographer for code navigation, dev banner)
+
+### Asset Management
+
+Images stored in `/attached_assets/generated_images/` for hero sections and playlist covers (morning, daytime, bedtime themes).
