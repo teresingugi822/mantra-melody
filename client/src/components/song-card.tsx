@@ -109,14 +109,13 @@ export function SongCard({ song, onPlay }: SongCardProps) {
                       if (e.key === "Enter") handleSaveTitle();
                       if (e.key === "Escape") handleCancelEdit();
                     }}
-                    className="h-8"
                     autoFocus
                     data-testid={`input-edit-title-${song.id}`}
                   />
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8 flex-shrink-0"
+                    className="flex-shrink-0"
                     onClick={handleSaveTitle}
                     disabled={updateTitleMutation.isPending}
                     data-testid={`button-save-title-${song.id}`}
@@ -126,7 +125,7 @@ export function SongCard({ song, onPlay }: SongCardProps) {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8 flex-shrink-0"
+                    className="flex-shrink-0"
                     onClick={handleCancelEdit}
                     disabled={updateTitleMutation.isPending}
                     data-testid={`button-cancel-edit-${song.id}`}
