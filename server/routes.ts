@@ -82,12 +82,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title
         );
         
-        // Update song with audio URL
+        // Update song with audio URL and completed status
         const [updatedSong] = await db
           .update(songs)
           .set({
-            audioUrl,
-            status: status === "completed" ? "completed" : "generating",
+            audioUrl: audioUrl,
+            status: status, // Will be "completed" if we reach here
           })
           .where(eq(songs.id, song.id))
           .returning();
@@ -97,15 +97,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error generating music:", musicError);
         
         // Update song status to error
-        const [updatedSong] = await db
+        await db
           .update(songs)
           .set({
             status: "error",
           })
-          .where(eq(songs.id, song.id))
-          .returning();
+          .where(eq(songs.id, song.id));
 
-        res.json(updatedSong);
+        const errorMessage = musicError instanceof Error ? musicError.message : "Music generation failed. Please try again.";
+        res.status(500).json({ error: errorMessage });
       }
     } catch (error) {
       console.error("Error generating song:", error);

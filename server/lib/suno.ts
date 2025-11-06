@@ -9,6 +9,7 @@ interface SunoGenerateRequest {
   instrumental: boolean;
   vocalGender?: "m" | "f";
   model?: string;
+  callBackUrl?: string;
 }
 
 interface SunoGenerateResponse {
@@ -19,18 +20,24 @@ interface SunoGenerateResponse {
   };
 }
 
-interface SunoGetResponse {
+interface SunoStatusResponse {
   code: number;
   msg: string;
-  data: Array<{
-    id: string;
-    audio_url: string;
-    video_url: string;
-    status: string;
-    title: string;
-    tags: string;
-    duration: number;
-  }>;
+  data: {
+    taskId: string;
+    status: "PENDING" | "TEXT_SUCCESS" | "FIRST_SUCCESS" | "SUCCESS" | "CREATE_TASK_FAILED" | "GENERATE_AUDIO_FAILED" | "CALLBACK_EXCEPTION" | "SENSITIVE_WORD_ERROR";
+    response?: {
+      sunoData?: Array<{
+        id: string;
+        audioUrl: string;
+        streamAudioUrl: string;
+        imageUrl: string;
+        title: string;
+        tags: string;
+        duration: number;
+      }>;
+    };
+  };
 }
 
 export interface VoiceOptions {
@@ -47,11 +54,8 @@ export async function generateMusic(
   const apiKey = process.env.SUNO_API_KEY;
 
   if (!apiKey) {
-    console.warn("SUNO_API_KEY not configured - returning mock audio URL");
-    return {
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-      status: "completed"
-    };
+    console.error("SUNO_API_KEY not configured - cannot generate music");
+    throw new Error("Suno API key not configured");
   }
 
   try {
@@ -83,6 +87,7 @@ export async function generateMusic(
         instrumental: false,
         vocalGender: vocalGender,
         model: "V4"
+        // Note: callBackUrl is optional, using polling instead
       } as SunoGenerateRequest)
     });
 
@@ -100,14 +105,14 @@ export async function generateMusic(
     const taskId = generateData.data.taskId;
     console.log(`Song generation started with taskId: ${taskId}`);
 
-    // Poll for completion (retry up to 30 times with 2 second intervals = 60 seconds max)
+    // Poll for completion (retry up to 60 times with 3 second intervals = 180 seconds max)
     let attempts = 0;
-    const maxAttempts = 30;
+    const maxAttempts = 60;
     
     while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds between polls
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds between polls
       
-      const statusResponse = await fetch(`https://api.sunoapi.org/api/v1/get?ids=${taskId}`, {
+      const statusResponse = await fetch(`https://api.sunoapi.org/api/v1/generate/record-info?taskId=${taskId}`, {
         headers: {
           "Authorization": `Bearer ${apiKey}`
         }
@@ -119,41 +124,39 @@ export async function generateMusic(
         continue;
       }
 
-      const statusData = await statusResponse.json() as SunoGetResponse;
+      const statusData = await statusResponse.json() as SunoStatusResponse;
 
-      if (statusData.code === 200 && statusData.data.length > 0) {
-        const song = statusData.data[0];
+      if (statusData.code === 200) {
+        const taskStatus = statusData.data.status;
         
-        if (song.status === "complete" && song.audio_url) {
-          console.log(`Song generation completed: ${song.audio_url}`);
+        if (taskStatus === "SUCCESS" && statusData.data.response?.sunoData?.[0]?.audioUrl) {
+          const audioUrl = statusData.data.response.sunoData[0].audioUrl;
+          console.log(`Song generation completed: ${audioUrl}`);
           return {
-            audioUrl: song.audio_url,
+            audioUrl: audioUrl,
             status: "completed"
           };
-        } else if (song.status === "error") {
-          throw new Error("Song generation failed");
+        } else if (taskStatus === "CREATE_TASK_FAILED" || taskStatus === "GENERATE_AUDIO_FAILED" || taskStatus === "SENSITIVE_WORD_ERROR") {
+          throw new Error(`Song generation failed with status: ${taskStatus}`);
         }
         
-        console.log(`Song status: ${song.status}, attempt ${attempts + 1}/${maxAttempts}`);
+        console.log(`Song status: ${taskStatus}, attempt ${attempts + 1}/${maxAttempts}`);
       }
 
       attempts++;
     }
 
     // If we get here, polling timed out
-    console.warn("Song generation timed out after 60 seconds");
-    return {
-      audioUrl: "",
-      status: "generating"
-    };
+    console.error("Song generation timed out after 180 seconds");
+    throw new Error("Music generation timed out. Please try again.");
 
   } catch (error) {
     console.error("Error generating music with Suno:", error);
-    // Fallback to mock audio for demonstration
-    return {
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-      status: "completed"
-    };
+    // Re-throw the error to propagate to route handler
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Failed to generate music. Please try again.");
   }
 }
 
@@ -161,11 +164,11 @@ export async function checkSongStatus(taskId: string): Promise<{ audioUrl?: stri
   const apiKey = process.env.SUNO_API_KEY;
 
   if (!apiKey) {
-    return { status: "completed", audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" };
+    return { status: "error" };
   }
 
   try {
-    const response = await fetch(`https://api.sunoapi.org/api/v1/get?ids=${taskId}`, {
+    const response = await fetch(`https://api.sunoapi.org/api/v1/generate/record-info?taskId=${taskId}`, {
       headers: {
         "Authorization": `Bearer ${apiKey}`
       }
@@ -175,13 +178,24 @@ export async function checkSongStatus(taskId: string): Promise<{ audioUrl?: stri
       throw new Error(`Failed to check status: ${response.status}`);
     }
 
-    const data = await response.json() as SunoGetResponse;
+    const data = await response.json() as SunoStatusResponse;
 
-    if (data.code === 200 && data.data.length > 0) {
-      const song = data.data[0];
+    if (data.code === 200) {
+      const taskStatus = data.data.status;
+      
+      if (taskStatus === "SUCCESS" && data.data.response?.sunoData?.[0]?.audioUrl) {
+        return {
+          status: "completed",
+          audioUrl: data.data.response.sunoData[0].audioUrl
+        };
+      } else if (taskStatus === "CREATE_TASK_FAILED" || taskStatus === "GENERATE_AUDIO_FAILED" || taskStatus === "SENSITIVE_WORD_ERROR") {
+        return {
+          status: "error"
+        };
+      }
+      
       return {
-        audioUrl: song.audio_url || undefined,
-        status: song.status === "complete" ? "completed" : song.status
+        status: "generating"
       };
     }
 
