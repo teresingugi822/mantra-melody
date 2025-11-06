@@ -38,42 +38,48 @@ export function VoiceSelector({
           Voice Gender
         </label>
         <div className="grid grid-cols-2 gap-3">
-          {genderOptions.map((option) => (
-            <Button
-              key={option.value}
-              type="button"
-              variant={selectedGender === option.value ? "default" : "outline"}
-              className="h-auto py-3 hover-elevate"
-              onClick={() =>
-                onGenderChange(selectedGender === option.value ? null : option.value)
-              }
-              data-testid={`button-voice-gender-${option.value}`}
-            >
-              <option.icon className="h-4 w-4 mr-2" />
-              {option.label}
-            </Button>
-          ))}
+          {genderOptions.map((option) => {
+            const isSelected = selectedGender === option.value;
+            return (
+              <Button
+                key={option.value}
+                type="button"
+                variant={isSelected ? "default" : "outline"}
+                className={`h-auto py-3 ${isSelected ? "" : "hover-elevate"}`}
+                onClick={() =>
+                  onGenderChange(isSelected ? null : option.value)
+                }
+                data-testid={`button-voice-gender-${option.value}`}
+              >
+                <option.icon className="h-4 w-4 mr-2" />
+                {option.label}
+              </Button>
+            );
+          })}
         </div>
       </div>
 
       <div className="space-y-3">
         <label className="text-sm font-medium">Voice Style</label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {styleOptions.map((option) => (
-            <Button
-              key={option.value}
-              type="button"
-              variant={selectedStyle === option.value ? "default" : "outline"}
-              className="h-auto py-3 flex flex-col items-start gap-1 hover-elevate"
-              onClick={() =>
-                onStyleChange(selectedStyle === option.value ? null : option.value)
-              }
-              data-testid={`button-voice-style-${option.value}`}
-            >
-              <span className="font-medium text-sm">{option.label}</span>
-              <span className="text-xs text-muted-foreground">{option.description}</span>
-            </Button>
-          ))}
+          {styleOptions.map((option) => {
+            const isSelected = selectedStyle === option.value;
+            return (
+              <Button
+                key={option.value}
+                type="button"
+                variant={isSelected ? "default" : "outline"}
+                className={`h-auto py-3 flex flex-col items-start gap-1 ${isSelected ? "" : "hover-elevate"}`}
+                onClick={() =>
+                  onStyleChange(isSelected ? null : option.value)
+                }
+                data-testid={`button-voice-style-${option.value}`}
+              >
+                <span className="font-medium text-sm">{option.label}</span>
+                <span className="text-xs text-muted-foreground">{option.description}</span>
+              </Button>
+            );
+          })}
         </div>
       </div>
     </div>
