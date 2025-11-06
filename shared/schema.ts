@@ -20,6 +20,9 @@ export const songs = pgTable("songs", {
   audioUrl: text("audio_url"),
   status: text("status").notNull().default("pending"), // pending, generating, completed, error
   playlistType: text("playlist_type"), // morning, daytime, bedtime, null for custom
+  vocalGender: text("vocal_gender"), // male, female
+  vocalStyle: text("vocal_style"), // warm, powerful, soft, energetic, soulful, gritty
+  useExactLyrics: boolean("use_exact_lyrics").default(false), // use exact mantra words vs transformed lyrics
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -65,3 +68,10 @@ export type Genre = typeof GENRES[number];
 // Playlist types
 export const PLAYLIST_TYPES = ["morning", "daytime", "bedtime", "custom"] as const;
 export type PlaylistType = typeof PLAYLIST_TYPES[number];
+
+// Vocal options
+export const VOCAL_GENDERS = ["male", "female"] as const;
+export type VocalGender = typeof VOCAL_GENDERS[number];
+
+export const VOCAL_STYLES = ["warm", "powerful", "soft", "energetic", "soulful", "gritty"] as const;
+export type VocalStyle = typeof VOCAL_STYLES[number];

@@ -5,6 +5,7 @@ interface SunoGenerateRequest {
   prompt: string;
   make_instrumental: boolean;
   model?: string;
+  tags?: string;
 }
 
 interface SunoGenerateResponse {
@@ -14,9 +15,15 @@ interface SunoGenerateResponse {
   error?: string;
 }
 
+export interface VoiceOptions {
+  gender?: "male" | "female";
+  style?: "warm" | "powerful" | "soft" | "energetic" | "soulful" | "gritty";
+}
+
 export async function generateMusic(
   lyrics: string,
-  genre: string
+  genre: string,
+  voiceOptions?: VoiceOptions
 ): Promise<{ audioUrl: string; status: string }> {
   const apiKey = process.env.SUNO_API_KEY;
 
@@ -30,8 +37,23 @@ export async function generateMusic(
   }
 
   try {
-    // Construct the prompt with genre and style guidance
-    const prompt = `${genre} style song with these lyrics: ${lyrics.substring(0, 500)}`;
+    // Build vocal style description
+    let vocalDescription = "";
+    if (voiceOptions?.gender && voiceOptions?.style) {
+      vocalDescription = `${voiceOptions.style} ${voiceOptions.gender} voice`;
+    } else if (voiceOptions?.gender) {
+      vocalDescription = `${voiceOptions.gender} voice`;
+    } else if (voiceOptions?.style) {
+      vocalDescription = `${voiceOptions.style} vocals`;
+    }
+
+    // Construct style tags with genre and vocal characteristics
+    const styleTags = vocalDescription 
+      ? `${genre}, ${vocalDescription}`
+      : genre;
+
+    // Construct the prompt with lyrics
+    const prompt = lyrics.substring(0, 500);
 
     // Call Suno API (example using a common endpoint structure)
     const response = await fetch("https://api.aimlapi.com/v2/generate/audio/suno-ai/clip", {
@@ -42,8 +64,9 @@ export async function generateMusic(
       },
       body: JSON.stringify({
         prompt: prompt,
+        tags: styleTags,
         make_instrumental: false,
-        model: "chirp-v3-5"
+        model: "chirp-v4"
       } as SunoGenerateRequest)
     });
 

@@ -42,9 +42,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         text: z.string().min(1),
         genre: z.enum(["soul", "blues", "hip-hop", "reggae", "pop", "acoustic"]),
         playlistType: z.enum(["morning", "daytime", "bedtime"]).optional(),
+        vocalGender: z.enum(["male", "female"]).optional(),
+        vocalStyle: z.enum(["warm", "powerful", "soft", "energetic", "soulful", "gritty"]).optional(),
+        useExactLyrics: z.boolean().optional(),
       });
 
-      const { text, genre, playlistType } = bodySchema.parse(req.body);
+      const { text, genre, playlistType, vocalGender, vocalStyle, useExactLyrics } = bodySchema.parse(req.body);
 
       // 1. Create mantra record
       const [mantra] = await db.insert(mantras).values({
@@ -54,8 +57,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 2. Generate song title
       const title = await generateSongTitle(text);
 
-      // 3. Generate lyrics using OpenAI
-      const lyrics = await generateLyrics(text, genre);
+      // 3. Generate lyrics using OpenAI (exact or transformed)
+      const lyrics = await generateLyrics(text, genre, useExactLyrics || false);
 
       // 4. Create song record (initially pending)
       const [song] = await db.insert(songs).values({
@@ -65,11 +68,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lyrics,
         status: "generating",
         playlistType: playlistType || null,
+        vocalGender: vocalGender || null,
+        vocalStyle: vocalStyle || null,
+        useExactLyrics: useExactLyrics || false,
       }).returning();
 
       // 5. Generate music using Suno (async)
       try {
-        const { audioUrl, status } = await generateMusic(lyrics, genre);
+        const { audioUrl, status } = await generateMusic(
+          lyrics, 
+          genre, 
+          { gender: vocalGender, style: vocalStyle }
+        );
         
         // Update song with audio URL
         const [updatedSong] = await db

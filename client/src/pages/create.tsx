@@ -3,12 +3,14 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { GenreSelector } from "@/components/genre-selector";
+import { VoiceSelector } from "@/components/voice-selector";
 import { Loader2, Music, ArrowLeft, Sparkles, Sun, Moon, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Genre } from "@shared/schema";
+import type { Genre, VocalGender, VocalStyle } from "@shared/schema";
 
 type PlaylistType = "morning" | "daytime" | "bedtime" | null;
 
@@ -18,9 +20,19 @@ export default function Create() {
   const [mantraText, setMantraText] = useState("");
   const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<PlaylistType>(null);
+  const [selectedVocalGender, setSelectedVocalGender] = useState<VocalGender | null>(null);
+  const [selectedVocalStyle, setSelectedVocalStyle] = useState<VocalStyle | null>(null);
+  const [useExactLyrics, setUseExactLyrics] = useState(false);
 
   const generateSongMutation = useMutation({
-    mutationFn: async (data: { text: string; genre: Genre; playlistType?: string }) => {
+    mutationFn: async (data: { 
+      text: string; 
+      genre: Genre; 
+      playlistType?: string;
+      vocalGender?: VocalGender;
+      vocalStyle?: VocalStyle;
+      useExactLyrics?: boolean;
+    }) => {
       return await apiRequest("POST", "/api/songs/generate", data);
     },
     onSuccess: (data: any) => {
@@ -66,6 +78,9 @@ export default function Create() {
       text: mantraText,
       genre: selectedGenre,
       playlistType: selectedPlaylist || undefined,
+      vocalGender: selectedVocalGender || undefined,
+      vocalStyle: selectedVocalStyle || undefined,
+      useExactLyrics,
     });
   };
 
@@ -142,6 +157,32 @@ export default function Create() {
               value={selectedGenre}
               onChange={setSelectedGenre}
             />
+
+            {/* Voice Selection */}
+            <VoiceSelector
+              selectedGender={selectedVocalGender}
+              selectedStyle={selectedVocalStyle}
+              onGenderChange={setSelectedVocalGender}
+              onStyleChange={setSelectedVocalStyle}
+            />
+
+            {/* Exact Lyrics Toggle */}
+            <div className="flex items-center justify-between space-x-4 p-4 border rounded-lg">
+              <div className="flex-1">
+                <label htmlFor="exact-lyrics" className="text-sm font-medium">
+                  Use My Exact Words
+                </label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sing your mantra exactly as written, or let AI transform it into song lyrics
+                </p>
+              </div>
+              <Switch
+                id="exact-lyrics"
+                checked={useExactLyrics}
+                onCheckedChange={setUseExactLyrics}
+                data-testid="switch-exact-lyrics"
+              />
+            </div>
 
             {/* Playlist Assignment (Optional) */}
             <div className="space-y-3">

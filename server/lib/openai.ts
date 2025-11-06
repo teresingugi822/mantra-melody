@@ -7,7 +7,26 @@ const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
 });
 
-export async function generateLyrics(mantraText: string, genre: string): Promise<string> {
+export async function generateLyrics(
+  mantraText: string, 
+  genre: string, 
+  useExactLyrics: boolean = false
+): Promise<string> {
+  // If user wants exact lyrics, return the mantra with song structure
+  if (useExactLyrics) {
+    // Format the mantra as repeating lyrics with verse/chorus structure
+    const lines = mantraText.split(/[.!?]/).filter(line => line.trim());
+    
+    if (lines.length === 0) {
+      return mantraText;
+    }
+    
+    // Create a simple song structure with the exact mantra words
+    const verse = lines.join('\n').trim();
+    return `[Verse]\n${verse}\n\n[Chorus]\n${verse}\n\n[Verse]\n${verse}\n\n[Chorus]\n${verse}`;
+  }
+
+  // Otherwise, transform into song lyrics using AI
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
