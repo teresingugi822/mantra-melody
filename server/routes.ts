@@ -147,6 +147,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update song title
+  app.patch("/api/songs/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const bodySchema = z.object({
+        title: z.string().min(1, "Title cannot be empty"),
+      });
+
+      const { title } = bodySchema.parse(req.body);
+
+      const [updatedSong] = await db
+        .update(songs)
+        .set({ title })
+        .where(eq(songs.id, id))
+        .returning();
+
+      if (!updatedSong) {
+        res.status(404).json({ error: "Song not found" });
+        return;
+      }
+
+      res.json(updatedSong);
+    } catch (error) {
+      console.error("Error updating song:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid request data", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to update song" });
+      }
+    }
+  });
+
+  // Delete song
+  app.delete("/api/songs/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const [deletedSong] = await db
+        .delete(songs)
+        .where(eq(songs.id, id))
+        .returning();
+
+      if (!deletedSong) {
+        res.status(404).json({ error: "Song not found" });
+        return;
+      }
+
+      res.json({ success: true, message: "Song deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting song:", error);
+      res.status(500).json({ error: "Failed to delete song" });
+    }
+  });
+
   // Get all playlists
   app.get("/api/playlists", async (req, res) => {
     try {
