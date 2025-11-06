@@ -2,10 +2,13 @@
 // This service integrates with SunoAPI.org for music generation
 
 interface SunoGenerateRequest {
-  lyrics: string;
-  tags: string;
+  prompt: string;
+  style: string;
   title?: string;
-  make_instrumental: boolean;
+  customMode: boolean;
+  instrumental: boolean;
+  vocalGender?: "m" | "f";
+  model?: string;
 }
 
 interface SunoGenerateResponse {
@@ -52,35 +55,34 @@ export async function generateMusic(
   }
 
   try {
-    // Build vocal style description for tags
-    let vocalDescription = "";
-    if (voiceOptions?.gender && voiceOptions?.style) {
-      vocalDescription = `${voiceOptions.style} ${voiceOptions.gender} voice`;
-    } else if (voiceOptions?.gender) {
-      vocalDescription = `${voiceOptions.gender} voice`;
-    } else if (voiceOptions?.style) {
-      vocalDescription = `${voiceOptions.style} vocals`;
+    // Build style description with vocal characteristics
+    let styleDescription = genre;
+    if (voiceOptions?.style) {
+      styleDescription = `${genre}, ${voiceOptions.style}`;
     }
 
-    // Construct style tags with genre and vocal characteristics
-    const styleTags = vocalDescription 
-      ? `${genre}, ${vocalDescription}`
-      : genre;
+    // Map gender to API format (m/f)
+    const vocalGender = voiceOptions?.gender === "male" ? "m" : 
+                       voiceOptions?.gender === "female" ? "f" : 
+                       undefined;
 
-    console.log(`Generating music with tags: ${styleTags}`);
+    console.log(`Generating music - Style: ${styleDescription}, Gender: ${vocalGender || 'unspecified'}`);
 
-    // Call SunoAPI.org custom_generate endpoint
-    const generateResponse = await fetch("https://api.sunoapi.org/api/v1/custom_generate", {
+    // Call SunoAPI.org generate endpoint
+    const generateResponse = await fetch("https://api.sunoapi.org/api/v1/generate", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        lyrics: lyrics,
-        tags: styleTags,
+        prompt: lyrics,
+        style: styleDescription,
         title: title || "Mantra Song",
-        make_instrumental: false
+        customMode: true,
+        instrumental: false,
+        vocalGender: vocalGender,
+        model: "V4"
       } as SunoGenerateRequest)
     });
 
