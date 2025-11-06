@@ -8,6 +8,18 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Suno callback endpoint - receives updates when songs are ready
+  app.post("/api/suno/callback", async (req, res) => {
+    try {
+      console.log("Suno callback received:", JSON.stringify(req.body, null, 2));
+      // Acknowledge the callback
+      res.status(200).json({ received: true });
+    } catch (error) {
+      console.error("Error handling Suno callback:", error);
+      res.status(500).json({ error: "Failed to process callback" });
+    }
+  });
+
   // Get all songs
   app.get("/api/songs", async (req, res) => {
     try {

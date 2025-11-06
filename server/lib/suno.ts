@@ -86,8 +86,8 @@ export async function generateMusic(
         customMode: true,
         instrumental: false,
         vocalGender: vocalGender,
-        model: "V4"
-        // Note: callBackUrl is optional, using polling instead
+        model: "V4",
+        callBackUrl: `${process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 'http://localhost:5000'}/api/suno/callback`
       } as SunoGenerateRequest)
     });
 
