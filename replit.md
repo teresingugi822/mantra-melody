@@ -52,7 +52,7 @@ Preferred communication style: Simple, everyday language.
 
 **Database Schema**:
 - `mantras` table - Stores user-written text with UUID primary keys
-- `songs` table - Generated songs linked to mantras, includes title, genre, lyrics, audio URL, status (pending/generating/completed/error), and optional playlist type
+- `songs` table - Generated songs linked to mantras, includes title, genre, lyrics, audio URL, status (pending/generating/completed/error), optional playlist type, voice characteristics (vocalGender, vocalStyle), and useExactLyrics flag
 - `playlists` table - Curated and custom playlists with name, type, and description
 
 **Migration Strategy**: Drizzle Kit for schema migrations stored in `/migrations` directory.
@@ -63,15 +63,16 @@ Preferred communication style: Simple, everyday language.
 
 **Lyrics Generation**: OpenAI GPT-5 integration via Replit's AI Integrations service (proxy that eliminates need for personal API keys). The system transforms user mantras into song lyrics while preserving the core message and emotional intent.
 
-**Music Generation**: Suno AI API integration for text-to-music synthesis. Configurable with fallback to mock audio URLs when API key is not available. Uses the "chirp-v3-5" model for music generation.
+**Music Generation**: SunoAPI.org integration for text-to-music synthesis with voice customization. Users select vocal gender (male/female) and style (warm, powerful, soft, energetic, soulful, gritty). Production-ready error handling with 180-second polling timeout.
 
 **Workflow**:
-1. User submits mantra text and genre selection
+1. User submits mantra text, genre selection, and voice characteristics
 2. Backend creates mantra record in database
-3. OpenAI generates song title and lyrics based on mantra
+3. OpenAI generates song title and lyrics based on mantra (exact or transformed)
 4. Song record created with "generating" status
-5. Suno API generates audio from lyrics and genre
-6. Song record updated with audio URL and "completed" status
+5. Suno API generates audio from lyrics, genre, and voice parameters using polling
+6. On success: Song record updated with audio URL and "completed" status
+7. On failure: Song record updated to "error" status with HTTP 500 response
 
 ### Authentication & Sessions
 
@@ -86,11 +87,14 @@ Currently no authentication system implemented - the application operates as a s
 - Purpose: GPT-5 model access for lyric generation
 - Managed service eliminates need for personal OpenAI API keys
 
-**Suno AI Music Generation**:
+**SunoAPI.org Music Generation**:
 - Environment: `SUNO_API_KEY`
-- Purpose: Text-to-music synthesis
-- Endpoint: `https://api.aimlapi.com/v2/generate/audio/suno-ai/clip`
-- Graceful degradation to mock audio when unavailable
+- Purpose: Text-to-music synthesis with voice customization
+- Base URL: `https://api.sunoapi.org`
+- Generate endpoint: `/api/v1/generate` with parameters (prompt, style, vocalGender, customMode, instrumental, model)
+- Polling endpoint: `/api/v1/generate/record-info?taskId=...`
+- Model: "V4" with 180-second polling timeout
+- Error handling: Exception-based with HTTP 500 responses for failures
 
 ### Database
 
