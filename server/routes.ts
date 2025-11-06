@@ -78,7 +78,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { audioUrl, status } = await generateMusic(
           lyrics, 
           genre, 
-          { gender: vocalGender, style: vocalStyle }
+          { gender: vocalGender, style: vocalStyle },
+          title
         );
         
         // Update song with audio URL
