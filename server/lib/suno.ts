@@ -3,6 +3,7 @@
 
 interface SunoGenerateRequest {
   prompt: string;
+  lyrics: string;
   style: string;
   title?: string;
   customMode: boolean;
@@ -72,6 +73,23 @@ export async function generateMusic(
 
     console.log(`Generating music - Style: ${styleDescription}, Gender: ${vocalGender || 'unspecified'}`);
 
+    // Build descriptive prompt for the song generation
+    const descriptivePrompt = `A ${styleDescription} song with ${vocalGender === 'm' ? 'male' : vocalGender === 'f' ? 'female' : ''} vocals`;
+
+    const sunoPayload = {
+      prompt: descriptivePrompt,
+      lyrics: lyrics,
+      style: styleDescription,
+      title: title || "Mantra Song",
+      customMode: true,
+      instrumental: false,
+      vocalGender: vocalGender,
+      model: "V4",
+      callBackUrl: `${process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 'http://localhost:5000'}/api/suno/callback`
+    };
+
+    console.log(`Suno API payload - Prompt: "${descriptivePrompt}", Lyrics length: ${lyrics.length} chars, Instrumental: false`);
+
     // Call SunoAPI.org generate endpoint
     const generateResponse = await fetch("https://api.sunoapi.org/api/v1/generate", {
       method: "POST",
@@ -79,16 +97,7 @@ export async function generateMusic(
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        prompt: lyrics,
-        style: styleDescription,
-        title: title || "Mantra Song",
-        customMode: true,
-        instrumental: false,
-        vocalGender: vocalGender,
-        model: "V4",
-        callBackUrl: `${process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 'http://localhost:5000'}/api/suno/callback`
-      } as SunoGenerateRequest)
+      body: JSON.stringify(sunoPayload)
     });
 
     if (!generateResponse.ok) {
