@@ -150,11 +150,6 @@ export function SongCard({ song, onPlay }: SongCardProps) {
                     {song.playlistType}
                   </Badge>
                 )}
-                {song.vocalGender && (
-                  <Badge variant="outline" data-testid={`badge-voice-${song.id}`}>
-                    {song.vocalGender} {song.vocalStyle && `• ${song.vocalStyle}`}
-                  </Badge>
-                )}
                 <span className="text-xs text-muted-foreground" data-testid={`text-date-${song.id}`}>
                   {format(new Date(song.createdAt), "MMM d, yyyy")}
                 </span>
