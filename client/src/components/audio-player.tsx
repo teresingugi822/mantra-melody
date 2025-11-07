@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Play, Pause, SkipBack, SkipForward, Volume2 } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, Music2, X } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import { LyricsDisplay } from "@/components/lyrics-display";
 import type { Song } from "@shared/schema";
 
 interface AudioPlayerProps {
@@ -25,6 +26,7 @@ export function AudioPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
+  const [showLyrics, setShowLyrics] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -78,25 +80,47 @@ export function AudioPlayer({
   };
 
   return (
-    <Card className="w-full" data-testid="audio-player">
-      <CardContent className="p-6">
-        {/* Song Info */}
-        <div className="mb-6">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1">
-              <h3 className="font-bold text-lg mb-1" data-testid="text-song-title">{song.title}</h3>
-              <Badge variant="secondary" data-testid="badge-genre">{song.genre}</Badge>
+    <div className="w-full space-y-4">
+      <Card data-testid="audio-player">
+        <CardContent className="p-6">
+          {/* Song Info */}
+          <div className="mb-6">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex-1">
+                <h3 className="font-bold text-lg mb-1" data-testid="text-song-title">{song.title}</h3>
+                <Badge variant="secondary" data-testid="badge-genre">{song.genre}</Badge>
+              </div>
+              {song.lyrics && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowLyrics(!showLyrics)}
+                  className="gap-2"
+                  data-testid="button-toggle-lyrics"
+                >
+                  {showLyrics ? (
+                    <>
+                      <X className="h-4 w-4" />
+                      Hide Lyrics
+                    </>
+                  ) : (
+                    <>
+                      <Music2 className="h-4 w-4" />
+                      Show Lyrics
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
+            {!showLyrics && song.lyrics && (
+              <p className="text-sm text-muted-foreground italic mt-3 line-clamp-2" data-testid="text-lyrics">
+                {song.lyrics}
+              </p>
+            )}
           </div>
-          {song.lyrics && (
-            <p className="text-sm text-muted-foreground italic mt-3 line-clamp-2" data-testid="text-lyrics">
-              {song.lyrics}
-            </p>
-          )}
-        </div>
 
-        {/* Progress Bar */}
-        <div className="space-y-2 mb-4">
+          {/* Progress Bar */}
+          <div className="space-y-2 mb-4">
           <Slider
             value={[currentTime]}
             max={duration || 100}
@@ -109,10 +133,10 @@ export function AudioPlayer({
             <span data-testid="text-current-time">{formatTime(currentTime)}</span>
             <span data-testid="text-duration">{formatTime(duration)}</span>
           </div>
-        </div>
+          </div>
 
-        {/* Controls */}
-        <div className="flex items-center justify-between">
+          {/* Controls */}
+          <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button
               size="icon"
@@ -160,13 +184,24 @@ export function AudioPlayer({
               data-testid="slider-volume"
             />
           </div>
-        </div>
+          </div>
 
-        {/* Hidden Audio Element */}
-        {song.audioUrl && (
-          <audio ref={audioRef} src={song.audioUrl} preload="metadata" />
-        )}
-      </CardContent>
-    </Card>
+          {/* Hidden Audio Element */}
+          {song.audioUrl && (
+            <audio ref={audioRef} src={song.audioUrl} preload="metadata" />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Lyrics Display */}
+      {showLyrics && song.lyrics && (
+        <LyricsDisplay
+          lyrics={song.lyrics}
+          currentTime={currentTime}
+          duration={duration}
+          isPlaying={isPlaying}
+        />
+      )}
+    </div>
   );
 }
