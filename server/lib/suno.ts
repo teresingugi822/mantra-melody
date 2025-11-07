@@ -2,9 +2,8 @@
 // This service integrates with SunoAPI.org for music generation
 
 interface SunoGenerateRequest {
-  prompt: string;
-  lyrics: string;
-  style: string;
+  prompt: string; // In custom mode, this is the LYRICS text to be sung
+  style: string; // Music genre/style description
   title?: string;
   customMode: boolean;
   instrumental: boolean;
@@ -71,15 +70,11 @@ export async function generateMusic(
                        voiceOptions?.gender === "female" ? "f" : 
                        undefined;
 
-    console.log(`Generating music - Style: ${styleDescription}, Gender: ${vocalGender || 'unspecified'}`);
-
-    // Build descriptive prompt for the song generation
-    const descriptivePrompt = `A ${styleDescription} song with ${vocalGender === 'm' ? 'male' : vocalGender === 'f' ? 'female' : ''} vocals`;
+    console.log(`Generating music - Style: ${styleDescription}, Gender: ${vocalGender || 'unspecified'}, Lyrics length: ${lyrics.length} chars`);
 
     const sunoPayload = {
-      prompt: descriptivePrompt,
-      lyrics: lyrics,
-      style: styleDescription,
+      prompt: lyrics, // In custom mode, prompt = the lyrics to sing
+      style: styleDescription, // Genre/style description
       title: title || "Mantra Song",
       customMode: true,
       instrumental: false,
@@ -88,7 +83,7 @@ export async function generateMusic(
       callBackUrl: `${process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 'http://localhost:5000'}/api/suno/callback`
     };
 
-    console.log(`Suno API payload - Prompt: "${descriptivePrompt}", Lyrics length: ${lyrics.length} chars, Instrumental: false`);
+    console.log(`Suno API payload - Lyrics to sing: ${lyrics.substring(0, 100)}..., Style: ${styleDescription}, Instrumental: false`);
 
     // Call SunoAPI.org generate endpoint
     const generateResponse = await fetch("https://api.sunoapi.org/api/v1/generate", {

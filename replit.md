@@ -61,18 +61,25 @@ Preferred communication style: Simple, everyday language.
 
 ### AI Integration
 
-**Lyrics Generation**: OpenAI GPT-5 integration via Replit's AI Integrations service (proxy that eliminates need for personal API keys). The system transforms user mantras into song lyrics while preserving the core message and emotional intent.
+**Lyrics Generation**: OpenAI GPT-4o integration via Replit's AI Integrations service (proxy that eliminates need for personal API keys). The system transforms user mantras into song lyrics while preserving the core message and emotional intent. Enhanced error handling validates non-empty responses and provides detailed error messages.
 
 **Music Generation**: SunoAPI.org integration for text-to-music synthesis with voice customization. Users select vocal gender (male/female) and style (warm, powerful, soft, energetic, soulful, gritty). Production-ready error handling with 180-second polling timeout.
+
+**Critical Configuration**: Suno API in custom mode requires specific field mapping:
+- `prompt`: Contains the actual **lyrics text to be sung** (3000-5000 char limit)
+- `style`: Contains the **genre/style description** (e.g., "soul, warm")
+- `customMode: true` + `instrumental: false` + `vocalGender` ensures vocals sing the lyrics
 
 **Workflow**:
 1. User submits mantra text, genre selection, and voice characteristics
 2. Backend creates mantra record in database
-3. OpenAI generates song title and lyrics based on mantra (exact or transformed)
-4. Song record created with "generating" status
-5. Suno API generates audio from lyrics, genre, and voice parameters using polling
-6. On success: Song record updated with audio URL and "completed" status
-7. On failure: Song record updated to "error" status with HTTP 500 response
+3. OpenAI generates song title using `gpt-4o` model
+4. OpenAI generates lyrics based on mantra (exact or transformed) with verse/chorus structure
+5. Song record created with title, lyrics, and "generating" status
+6. Suno API generates audio with lyrics in `prompt` field and genre in `style` field
+7. Backend polls Suno API every 3 seconds (max 180 seconds) for completion
+8. On success: Song record updated with audio URL and "completed" status
+9. On failure: Song record updated to "error" status with HTTP 500 response
 
 ### Authentication & Sessions
 
@@ -84,16 +91,26 @@ Currently no authentication system implemented - the application operates as a s
 
 **Replit AI Integrations (OpenAI Proxy)**:
 - Environment: `AI_INTEGRATIONS_OPENAI_BASE_URL`, `AI_INTEGRATIONS_OPENAI_API_KEY`
-- Purpose: GPT-5 model access for lyric generation
+- Model: `gpt-4o` (latest OpenAI chat completion model as of 2025)
+- Purpose: Generate song titles and transform mantras into structured lyrics
 - Managed service eliminates need for personal OpenAI API keys
+- Error handling: Validates non-empty responses, provides fallback for titles
 
 **SunoAPI.org Music Generation**:
 - Environment: `SUNO_API_KEY`
-- Purpose: Text-to-music synthesis with voice customization
+- Purpose: Text-to-music synthesis with vocal generation
 - Base URL: `https://api.sunoapi.org`
-- Generate endpoint: `/api/v1/generate` with parameters (prompt, style, vocalGender, customMode, instrumental, model)
-- Polling endpoint: `/api/v1/generate/record-info?taskId=...`
-- Model: "V4" with 180-second polling timeout
+- Generate endpoint: `/api/v1/generate` (POST)
+  - `prompt`: Lyrics text to sing (required in custom mode)
+  - `style`: Genre/style description (required)
+  - `title`: Song title (required)
+  - `customMode: true` (enables manual lyric control)
+  - `instrumental: false` (enables vocals)
+  - `vocalGender`: "m" or "f" (optional)
+  - `model`: "V4" (Suno's AI model version)
+  - `callBackUrl`: Webhook for generation updates
+- Polling endpoint: `/api/v1/generate/record-info?taskId=...` (GET)
+- Polling strategy: 3-second intervals, 60 attempts max (180 seconds total)
 - Error handling: Exception-based with HTTP 500 responses for failures
 
 ### Database
