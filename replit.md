@@ -18,11 +18,14 @@ Preferred communication style: Simple, everyday language.
 
 **UI Component System**: Shadcn/ui components built on Radix UI primitives with Tailwind CSS for styling. The design follows a "new-york" style variant with custom theming based on HSL color variables for light/dark mode support.
 
-**Routing**: Client-side routing using Wouter (lightweight React Router alternative) with routes for:
-- Home page (`/`)
-- Create/compose page (`/create`)
-- Library view (`/library`)
-- Playlist views (`/playlists/:type`)
+**Routing**: Client-side routing using Wouter (lightweight React Router alternative) with authentication-based routing:
+- Landing page (`/`) - Shown to unauthenticated users with login/signup options
+- Home page (`/`) - Shown to authenticated users with full app access
+- Create/compose page (`/create`) - Authenticated only
+- Library view (`/library`) - Authenticated only
+- Playlist views (`/playlists/:type`) - Authenticated only
+
+**Authentication Hook**: `useAuth()` hook provides user state, loading status, and authentication status throughout the app
 
 **State Management**: TanStack Query (React Query) for server state management, API requests, and caching. No global state management library - component state and React Query handle all data flow.
 
@@ -51,8 +54,10 @@ Preferred communication style: Simple, everyday language.
 **ORM**: Drizzle ORM for type-safe database queries and schema management.
 
 **Database Schema**:
-- `mantras` table - Stores user-written text with UUID primary keys
-- `songs` table - Generated songs linked to mantras, includes title, genre, lyrics, audio URL, status (pending/generating/completed/error), optional playlist type, voice characteristics (vocalGender, vocalStyle), and useExactLyrics flag
+- `users` table - User accounts from OIDC (id from sub claim, email, name, timestamps)
+- `sessions` table - PostgreSQL session storage (managed by connect-pg-simple)
+- `mantras` table - User-written text with UUID primary keys and userId foreign key
+- `songs` table - Generated songs linked to mantras and users, includes title, genre, lyrics, audio URL, status (pending/generating/completed/error), optional playlist type, voice characteristics (vocalGender, vocalStyle), useExactLyrics flag, and userId foreign key
 - `playlists` table - Curated and custom playlists with name, type, and description
 
 **Migration Strategy**: Drizzle Kit for schema migrations stored in `/migrations` directory.
@@ -83,7 +88,39 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication & Sessions
 
-Currently no authentication system implemented - the application operates as a single-user experience. Session management infrastructure (connect-pg-simple) is available in dependencies but not actively used.
+**Multi-User Authentication**: The application uses Replit Auth (OpenID Connect) for secure user authentication with support for multiple login methods (Google, GitHub, email/password, and more).
+
+**Implementation Details**:
+- Auth Provider: Replit Auth (OIDC) configured in `server/replitAuth.ts`
+- Session Storage: PostgreSQL-backed sessions using `connect-pg-simple`
+- Session Secret: Stored in `SESSION_SECRET` environment variable
+- Cookie Settings: Secure, HTTP-only, SameSite=Lax with 7-day expiration
+
+**Authentication Flow**:
+1. Unauthenticated users see landing page at `/` 
+2. Login initiated via `/api/login` (redirects to OIDC provider)
+3. OIDC callback at `/api/callback` creates user record and session
+4. Authenticated users redirected to home page with access to all features
+5. Logout via `/api/logout` destroys session and redirects to landing
+
+**User Data Model**:
+- `users` table stores OIDC user information (id, email, name, timestamps)
+- User ID comes from OIDC claim `sub` (subject identifier)
+- All user-owned resources (mantras, songs) include `userId` foreign key
+
+**Data Isolation & Security**:
+- All API endpoints protected with `isAuthenticated` middleware
+- Storage layer enforces user scoping for all CRUD operations
+- Methods like `getSong(id, userId)` ensure users can only access their own data
+- Direct database access avoided - all operations go through storage abstraction
+- Failed ownership checks return 404 (not 403) to prevent information leakage
+
+**API Routes**:
+- `/api/auth/user` - Returns current user info (GET)
+- `/api/login` - Initiates OIDC login flow
+- `/api/callback` - OIDC callback handler
+- `/api/logout` - Destroys session and logs out
+- All `/api/songs/*` and `/api/playlists/*` routes require authentication
 
 ## External Dependencies
 
