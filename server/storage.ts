@@ -28,10 +28,11 @@ export interface IStorage {
 
   // Song operations
   createSong(song: InsertSong, userId: string): Promise<Song>;
-  getSong(id: string): Promise<Song | undefined>;
+  getSong(id: string, userId: string): Promise<Song | undefined>;
   getAllSongs(userId: string): Promise<Song[]>;
   getSongsByPlaylistType(userId: string, type: string): Promise<Song[]>;
-  updateSong(id: string, updates: Partial<Song>): Promise<Song | undefined>;
+  updateSong(id: string, userId: string, updates: Partial<Song>): Promise<Song | undefined>;
+  deleteSong(id: string, userId: string): Promise<boolean>;
 
   // Playlist operations
   createPlaylist(playlist: InsertPlaylist): Promise<Playlist>;
@@ -92,8 +93,11 @@ export class DatabaseStorage implements IStorage {
     return song;
   }
 
-  async getSong(id: string): Promise<Song | undefined> {
-    const [song] = await db.select().from(songs).where(eq(songs.id, id));
+  async getSong(id: string, userId: string): Promise<Song | undefined> {
+    const [song] = await db
+      .select()
+      .from(songs)
+      .where(and(eq(songs.id, id), eq(songs.userId, userId)));
     return song;
   }
 
@@ -113,13 +117,21 @@ export class DatabaseStorage implements IStorage {
       .orderBy(songs.createdAt);
   }
 
-  async updateSong(id: string, updates: Partial<Song>): Promise<Song | undefined> {
+  async updateSong(id: string, userId: string, updates: Partial<Song>): Promise<Song | undefined> {
     const [song] = await db
       .update(songs)
       .set(updates)
-      .where(eq(songs.id, id))
+      .where(and(eq(songs.id, id), eq(songs.userId, userId)))
       .returning();
     return song;
+  }
+
+  async deleteSong(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(songs)
+      .where(and(eq(songs.id, id), eq(songs.userId, userId)))
+      .returning();
+    return result.length > 0;
   }
 
   // Playlist operations

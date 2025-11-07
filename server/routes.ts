@@ -108,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         
         // Update song with audio URL and completed status
-        const updatedSong = await storage.updateSong(song.id, {
+        const updatedSong = await storage.updateSong(song.id, userId, {
           audioUrl: audioUrl,
           status: status, // Will be "completed" if we reach here
         });
@@ -118,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error generating music:", musicError);
         
         // Update song status to error
-        await storage.updateSong(song.id, {
+        await storage.updateSong(song.id, userId, {
           status: "error",
         });
 
@@ -139,7 +139,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/songs/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const song = await storage.getSong(id);
+      const userId = req.user.claims.sub;
+      const song = await storage.getSong(id, userId);
       
       if (!song) {
         res.status(404).json({ error: "Song not found" });
@@ -157,13 +158,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/songs/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const userId = req.user.claims.sub;
       const bodySchema = z.object({
         title: z.string().min(1, "Title cannot be empty"),
       });
 
       const { title } = bodySchema.parse(req.body);
 
-      const updatedSong = await storage.updateSong(id, { title });
+      const updatedSong = await storage.updateSong(id, userId, { title });
 
       if (!updatedSong) {
         res.status(404).json({ error: "Song not found" });
@@ -185,13 +187,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/songs/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const userId = req.user.claims.sub;
 
-      const deletedSong = await db
-        .delete(songs)
-        .where(eq(songs.id, id))
-        .returning();
+      const wasDeleted = await storage.deleteSong(id, userId);
 
-      if (!deletedSong || deletedSong.length === 0) {
+      if (!wasDeleted) {
         res.status(404).json({ error: "Song not found" });
         return;
       }
