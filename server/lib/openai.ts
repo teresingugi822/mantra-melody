@@ -28,8 +28,10 @@ export async function generateLyrics(
 
   // Otherwise, transform into song lyrics using AI
   try {
+    console.log(`Generating lyrics for ${genre} song from mantra: "${mantraText.substring(0, 50)}..."`);
+    
     const response = await openai.chat.completions.create({
-      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-4o", 
       messages: [
         {
           role: "system",
@@ -44,17 +46,26 @@ export async function generateLyrics(
     });
 
     const lyrics = response.choices[0]?.message?.content || "";
+    
+    if (!lyrics || lyrics.trim().length === 0) {
+      console.error("OpenAI returned empty lyrics");
+      throw new Error("OpenAI returned empty lyrics");
+    }
+    
+    console.log(`Generated lyrics (${lyrics.length} chars)`);
     return lyrics.trim();
   } catch (error) {
     console.error("Error generating lyrics:", error);
-    throw new Error("Failed to generate song lyrics");
+    throw new Error(`Failed to generate song lyrics: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
 export async function generateSongTitle(mantraText: string): Promise<string> {
   try {
+    console.log(`Generating title for mantra: "${mantraText.substring(0, 50)}..."`);
+    
     const response = await openai.chat.completions.create({
-      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -69,11 +80,22 @@ export async function generateSongTitle(mantraText: string): Promise<string> {
     });
 
     const title = response.choices[0]?.message?.content || "";
-    return title.trim().replace(/['"]/g, ''); // Remove quotes if present
+    const cleanTitle = title.trim().replace(/['"]/g, ''); // Remove quotes if present
+    
+    if (!cleanTitle || cleanTitle.length === 0) {
+      console.warn("OpenAI returned empty title, using fallback");
+      const words = mantraText.split(' ').slice(0, 4);
+      return words.join(' ');
+    }
+    
+    console.log(`Generated title: "${cleanTitle}"`);
+    return cleanTitle;
   } catch (error) {
     console.error("Error generating title:", error);
     // Fallback: use first few words of mantra
     const words = mantraText.split(' ').slice(0, 4);
-    return words.join(' ');
+    const fallbackTitle = words.join(' ');
+    console.log(`Using fallback title: "${fallbackTitle}"`);
+    return fallbackTitle;
   }
 }
