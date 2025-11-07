@@ -68,8 +68,6 @@ export function LyricsDisplay({
           <div className="space-y-3">
             {lines.map((line, index) => {
               const isHighlighted = index === highlightedIndex;
-              const isPast = index < highlightedIndex;
-              const isFuture = index > highlightedIndex;
 
               return (
                 <div
@@ -80,9 +78,7 @@ export function LyricsDisplay({
                     transition-all duration-300 py-2 px-3 rounded-md
                     ${isHighlighted 
                       ? 'text-primary font-semibold text-lg bg-primary/10 scale-105' 
-                      : isPast
-                      ? 'text-muted-foreground/60 text-base'
-                      : 'text-foreground/80 text-base'
+                      : 'text-muted-foreground text-base'
                     }
                   `}
                 >
