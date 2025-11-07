@@ -1,17 +1,36 @@
-import { type Mantra, type InsertMantra, type Song, type InsertSong, type Playlist, type InsertPlaylist } from "@shared/schema";
+import { 
+  type Mantra, 
+  type InsertMantra, 
+  type Song, 
+  type InsertSong, 
+  type Playlist, 
+  type InsertPlaylist,
+  type User,
+  type UpsertUser,
+  mantras,
+  songs,
+  playlists,
+  users
+} from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations - Required for Replit Auth
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+
   // Mantra operations
-  createMantra(mantra: InsertMantra): Promise<Mantra>;
+  createMantra(mantra: InsertMantra, userId: string): Promise<Mantra>;
   getMantra(id: string): Promise<Mantra | undefined>;
-  getAllMantras(): Promise<Mantra[]>;
+  getAllMantras(userId: string): Promise<Mantra[]>;
 
   // Song operations
-  createSong(song: InsertSong): Promise<Song>;
+  createSong(song: InsertSong, userId: string): Promise<Song>;
   getSong(id: string): Promise<Song | undefined>;
-  getAllSongs(): Promise<Song[]>;
-  getSongsByPlaylistType(type: string): Promise<Song[]>;
+  getAllSongs(userId: string): Promise<Song[]>;
+  getSongsByPlaylistType(userId: string, type: string): Promise<Song[]>;
   updateSong(id: string, updates: Partial<Song>): Promise<Song | undefined>;
 
   // Playlist operations
@@ -20,94 +39,109 @@ export interface IStorage {
   getAllPlaylists(): Promise<Playlist[]>;
 }
 
-export class MemStorage implements IStorage {
-  private mantras: Map<string, Mantra>;
-  private songs: Map<string, Song>;
-  private playlists: Map<string, Playlist>;
-
-  constructor() {
-    this.mantras = new Map();
-    this.songs = new Map();
-    this.playlists = new Map();
+export class DatabaseStorage implements IStorage {
+  // User operations - Required for Replit Auth
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
-  async createMantra(insertMantra: InsertMantra): Promise<Mantra> {
-    const id = randomUUID();
-    const mantra: Mantra = { 
-      ...insertMantra, 
-      id,
-      createdAt: new Date()
-    };
-    this.mantras.set(id, mantra);
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  // Mantra operations
+  async createMantra(insertMantra: InsertMantra, userId: string): Promise<Mantra> {
+    const [mantra] = await db
+      .insert(mantras)
+      .values({ ...insertMantra, userId })
+      .returning();
     return mantra;
   }
 
   async getMantra(id: string): Promise<Mantra | undefined> {
-    return this.mantras.get(id);
+    const [mantra] = await db.select().from(mantras).where(eq(mantras.id, id));
+    return mantra;
   }
 
-  async getAllMantras(): Promise<Mantra[]> {
-    return Array.from(this.mantras.values()).sort((a, b) => 
-      b.createdAt.getTime() - a.createdAt.getTime()
-    );
+  async getAllMantras(userId: string): Promise<Mantra[]> {
+    return await db
+      .select()
+      .from(mantras)
+      .where(eq(mantras.userId, userId))
+      .orderBy(mantras.createdAt);
   }
 
-  async createSong(insertSong: InsertSong): Promise<Song> {
-    const id = randomUUID();
-    const song: Song = { 
-      ...insertSong, 
-      id,
-      createdAt: new Date()
-    };
-    this.songs.set(id, song);
+  // Song operations
+  async createSong(insertSong: InsertSong, userId: string): Promise<Song> {
+    const [song] = await db
+      .insert(songs)
+      .values({ ...insertSong, userId })
+      .returning();
     return song;
   }
 
   async getSong(id: string): Promise<Song | undefined> {
-    return this.songs.get(id);
+    const [song] = await db.select().from(songs).where(eq(songs.id, id));
+    return song;
   }
 
-  async getAllSongs(): Promise<Song[]> {
-    return Array.from(this.songs.values()).sort((a, b) => 
-      b.createdAt.getTime() - a.createdAt.getTime()
-    );
+  async getAllSongs(userId: string): Promise<Song[]> {
+    return await db
+      .select()
+      .from(songs)
+      .where(eq(songs.userId, userId))
+      .orderBy(songs.createdAt);
   }
 
-  async getSongsByPlaylistType(type: string): Promise<Song[]> {
-    return Array.from(this.songs.values())
-      .filter(song => song.playlistType === type)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  async getSongsByPlaylistType(userId: string, type: string): Promise<Song[]> {
+    return await db
+      .select()
+      .from(songs)
+      .where(and(eq(songs.userId, userId), eq(songs.playlistType, type)))
+      .orderBy(songs.createdAt);
   }
 
   async updateSong(id: string, updates: Partial<Song>): Promise<Song | undefined> {
-    const song = this.songs.get(id);
-    if (!song) return undefined;
-    
-    const updated = { ...song, ...updates };
-    this.songs.set(id, updated);
-    return updated;
+    const [song] = await db
+      .update(songs)
+      .set(updates)
+      .where(eq(songs.id, id))
+      .returning();
+    return song;
   }
 
+  // Playlist operations
   async createPlaylist(insertPlaylist: InsertPlaylist): Promise<Playlist> {
-    const id = randomUUID();
-    const playlist: Playlist = { 
-      ...insertPlaylist, 
-      id,
-      createdAt: new Date()
-    };
-    this.playlists.set(id, playlist);
+    const [playlist] = await db
+      .insert(playlists)
+      .values(insertPlaylist)
+      .returning();
     return playlist;
   }
 
   async getPlaylist(id: string): Promise<Playlist | undefined> {
-    return this.playlists.get(id);
+    const [playlist] = await db.select().from(playlists).where(eq(playlists.id, id));
+    return playlist;
   }
 
   async getAllPlaylists(): Promise<Playlist[]> {
-    return Array.from(this.playlists.values()).sort((a, b) => 
-      b.createdAt.getTime() - a.createdAt.getTime()
-    );
+    return await db
+      .select()
+      .from(playlists)
+      .orderBy(playlists.createdAt);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

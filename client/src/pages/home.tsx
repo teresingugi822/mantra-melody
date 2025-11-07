@@ -1,10 +1,14 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Music, Pen, Headphones, Sparkles, Heart, Sun, Moon } from "lucide-react";
+import { Music, Pen, Headphones, Sparkles, Heart, Sun, Moon, LogOut } from "lucide-react";
 import heroImage from "@assets/generated_images/Hero_sunrise_meditation_scene_7b6760e5.png";
 
 export default function Home() {
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -25,9 +29,19 @@ export default function Home() {
               Playlists
             </a>
           </nav>
-          <Link href="/create">
-            <Button data-testid="button-get-started">Get Started</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/create">
+              <Button data-testid="button-get-started">Get Started</Button>
+            </Link>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleLogout}
+              data-testid="button-logout"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
