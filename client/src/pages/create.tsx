@@ -248,7 +248,7 @@ export default function Create() {
                   Creating lyrics and composing your personalized mantra song...
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  This may take up to 30 seconds
+                  This may take 3-6 minutes. AI is composing your unique song with vocals and instruments.
                 </p>
               </div>
             )}

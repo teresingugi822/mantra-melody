@@ -109,9 +109,10 @@ export async function generateMusic(
     const taskId = generateData.data.taskId;
     console.log(`Song generation started with taskId: ${taskId}`);
 
-    // Poll for completion (retry up to 60 times with 3 second intervals = 180 seconds max)
+    // Poll for completion (retry up to 120 times with 3 second intervals = 360 seconds / 6 minutes max)
+    // Suno can take 3-6 minutes for complex songs
     let attempts = 0;
-    const maxAttempts = 60;
+    const maxAttempts = 120;
     
     while (attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds between polls
@@ -151,8 +152,8 @@ export async function generateMusic(
     }
 
     // If we get here, polling timed out
-    console.error("Song generation timed out after 180 seconds");
-    throw new Error("Music generation timed out. Please try again.");
+    console.error(`Song generation timed out after ${maxAttempts * 3} seconds (${maxAttempts} attempts)`);
+    throw new Error("Music generation is taking longer than expected. This can happen with complex songs. Please try again or try a simpler mantra.");
 
   } catch (error) {
     console.error("Error generating music with Suno:", error);
