@@ -26,7 +26,7 @@ export function AudioPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [showLyrics, setShowLyrics] = useState(false);
+  const [showLyrics, setShowLyrics] = useState(true); // Show lyrics by default
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
