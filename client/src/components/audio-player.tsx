@@ -2,10 +2,16 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Play, Pause, SkipBack, SkipForward, Volume2, Music2, X, Download, Share2 } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, Music2, X, Download, Share2, FileAudio, Video } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { LyricsDisplay } from "@/components/lyrics-display";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Song } from "@shared/schema";
 
 interface AudioPlayerProps {
@@ -81,7 +87,7 @@ export function AudioPlayer({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleDownload = async () => {
+  const handleDownloadAudio = async () => {
     if (!song.audioUrl) {
       toast({
         title: "Download Failed",
@@ -121,13 +127,266 @@ export function AudioPlayer({
 
       toast({
         title: "Download Started",
-        description: `Downloading "${song.title}"...`,
+        description: `Downloading "${song.title}" as audio...`,
       });
     } catch (error) {
       console.error('Download error:', error);
       toast({
         title: "Download Failed",
         description: "Could not download the song. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadVideo = async () => {
+    if (!song.audioUrl || !song.lyrics) {
+      toast({
+        title: "Download Failed",
+        description: "Song must have audio and lyrics to create a video.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if MediaRecorder exists at all
+    if (typeof MediaRecorder === 'undefined') {
+      toast({
+        title: "Video Not Supported",
+        description: "Your browser doesn't support video recording. Please use Chrome, Edge, or Firefox.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check MediaRecorder support and select best codec
+    const supportedMimeTypes = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm',
+    ];
+
+    const mimeType = supportedMimeTypes.find(type => 
+      MediaRecorder.isTypeSupported(type)
+    );
+
+    if (!mimeType) {
+      toast({
+        title: "Video Not Supported",
+        description: "Your browser doesn't support the required video codecs. Please use a newer browser.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let audioContext: AudioContext | null = null;
+    let animationId: number | null = null;
+    let audioBlobUrl: string | null = null;
+    let recordingTimeout: NodeJS.Timeout | null = null;
+    let isTimedOut = false;
+
+    try {
+      toast({
+        title: "Creating Video",
+        description: "Fetching audio file...",
+      });
+
+      // Fetch audio file
+      const audioResponse = await fetch(song.audioUrl);
+      if (!audioResponse.ok) {
+        throw new Error('Failed to fetch audio file');
+      }
+      const audioBlob = await audioResponse.blob();
+      audioBlobUrl = URL.createObjectURL(audioBlob);
+
+      toast({
+        title: "Creating Video",
+        description: "Setting up recording...",
+      });
+
+      // Create audio element for duration (muted to prevent double playback)
+      const audio = new Audio(audioBlobUrl);
+      audio.muted = true;
+      await new Promise((resolve, reject) => {
+        audio.addEventListener('loadedmetadata', resolve, { once: true });
+        audio.addEventListener('error', reject, { once: true });
+      });
+      const videoDuration = audio.duration;
+
+      // Parse lyrics into lines
+      const lyricsLines = song.lyrics.split('\n').filter(line => line.trim());
+      const timePerLine = videoDuration / lyricsLines.length;
+
+      // Create canvas for video rendering
+      const canvas = document.createElement('canvas');
+      canvas.width = 1280;
+      canvas.height = 720;
+      const ctx = canvas.getContext('2d')!;
+
+      // Set up canvas stream
+      const stream = canvas.captureStream(30); // 30 FPS
+      audioContext = new AudioContext();
+      const audioSource = audioContext.createMediaElementSource(audio);
+      const audioDestination = audioContext.createMediaStreamDestination();
+      audioSource.connect(audioDestination);
+      
+      // Don't connect to speakers to avoid double audio
+      // audioSource.connect(audioContext.destination);
+
+      // Add audio track to stream
+      stream.addTrack(audioDestination.stream.getAudioTracks()[0]);
+
+      // Set up MediaRecorder with detected codec
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType,
+        videoBitsPerSecond: 2500000,
+      });
+
+      const chunks: Blob[] = [];
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        // Don't download or show success if we timed out
+        if (isTimedOut) {
+          console.log('Recording stopped due to timeout - skipping download');
+          if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
+          return;
+        }
+
+        const videoBlob = new Blob(chunks, { type: 'video/webm' });
+        const videoUrl = URL.createObjectURL(videoBlob);
+        
+        const link = document.createElement('a');
+        link.href = videoUrl;
+        link.download = `${song.title}.webm`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setTimeout(() => {
+          URL.revokeObjectURL(videoUrl);
+          if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
+        }, 100);
+
+        toast({
+          title: "Download Complete",
+          description: `"${song.title}" video downloaded successfully!`,
+        });
+      };
+
+      toast({
+        title: "Creating Video",
+        description: "Recording video with lyrics...",
+      });
+
+      // Set timeout to prevent hanging forever (add 30 seconds buffer to song duration)
+      recordingTimeout = setTimeout(() => {
+        console.warn('Video recording timeout - forcing stop');
+        isTimedOut = true;
+        if (animationId) cancelAnimationFrame(animationId);
+        if (mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+        if (audioContext) audioContext.close();
+        audio.pause();
+        
+        toast({
+          title: "Video Creation Timeout",
+          description: "Video took too long to create. Please try a shorter song.",
+          variant: "destructive",
+        });
+      }, (videoDuration + 30) * 1000);
+
+      // Draw function for lyrics animation
+      let currentLineIndex = 0;
+      const drawFrame = () => {
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#1a1a2e');
+        gradient.addColorStop(1, '#16213e');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Calculate current line based on audio time
+        currentLineIndex = Math.min(
+          Math.floor(audio.currentTime / timePerLine),
+          lyricsLines.length - 1
+        );
+
+        // Draw song title at top
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 36px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(song.title, canvas.width / 2, 80);
+
+        // Draw current lyric line (large, centered)
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 48px Playfair Display, serif';
+        ctx.textAlign = 'center';
+        const currentLine = lyricsLines[currentLineIndex] || '';
+        ctx.fillText(currentLine, canvas.width / 2, canvas.height / 2);
+
+        // Draw next line preview (smaller, below)
+        if (currentLineIndex + 1 < lyricsLines.length) {
+          ctx.fillStyle = '#ffffff80';
+          ctx.font = '32px Inter, sans-serif';
+          ctx.fillText(lyricsLines[currentLineIndex + 1], canvas.width / 2, canvas.height / 2 + 80);
+        }
+
+        // Draw genre badge at bottom
+        ctx.fillStyle = '#ffffff60';
+        ctx.font = '24px Inter, sans-serif';
+        ctx.fillText(song.genre.toUpperCase(), canvas.width / 2, canvas.height - 60);
+
+        // Draw progress bar at very bottom
+        const progressWidth = (audio.currentTime / videoDuration) * (canvas.width - 40);
+        ctx.fillStyle = '#ffffff40';
+        ctx.fillRect(20, canvas.height - 20, canvas.width - 40, 4);
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(20, canvas.height - 20, progressWidth, 4);
+      };
+
+      // Start recording
+      mediaRecorder.start();
+      audio.muted = false; // Unmute for recording
+      audio.play();
+
+      // Draw frames using requestAnimationFrame for better performance
+      const animate = () => {
+        drawFrame();
+        if (!audio.paused && !audio.ended) {
+          animationId = requestAnimationFrame(animate);
+        }
+      };
+      animationId = requestAnimationFrame(animate);
+
+      // Stop recording when audio ends
+      audio.addEventListener('ended', () => {
+        console.log('Audio ended - stopping recording');
+        if (recordingTimeout) clearTimeout(recordingTimeout);
+        if (animationId) cancelAnimationFrame(animationId);
+        if (mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+        if (audioContext) audioContext.close();
+      }, { once: true });
+
+    } catch (error) {
+      console.error('Video download error:', error);
+      
+      // Clean up resources on error
+      if (recordingTimeout) clearTimeout(recordingTimeout);
+      if (animationId) cancelAnimationFrame(animationId);
+      if (audioContext) audioContext.close();
+      if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
+      
+      toast({
+        title: "Video Creation Failed",
+        description: error instanceof Error ? error.message : "Could not create video. Please try again.",
         variant: "destructive",
       });
     }
@@ -188,16 +447,36 @@ export function AudioPlayer({
                 <Badge variant="secondary" data-testid="badge-genre">{song.genre}</Badge>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownload}
-                  className="gap-2"
-                  data-testid="button-download"
-                >
-                  <Download className="h-4 w-4" />
-                  Download
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      data-testid="button-download"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={handleDownloadAudio}
+                      data-testid="menu-download-audio"
+                    >
+                      <FileAudio className="mr-2 h-4 w-4" />
+                      Audio Only
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleDownloadVideo}
+                      data-testid="menu-download-video"
+                      disabled={!song.lyrics}
+                    >
+                      <Video className="mr-2 h-4 w-4" />
+                      Video with Lyrics
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button
                   variant="outline"
                   size="sm"
