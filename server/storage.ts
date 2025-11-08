@@ -6,7 +6,6 @@ import {
   type Playlist, 
   type InsertPlaylist,
   type User,
-  type UpsertUser,
   mantras,
   songs,
   playlists,
@@ -15,11 +14,14 @@ import {
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 export interface IStorage {
-  // User operations - Required for Replit Auth
+  // User operations - Username/Password Auth
   getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(username: string, password: string, email?: string): Promise<User>;
+  verifyUserPassword(username: string, password: string): Promise<User | undefined>;
 
   // Mantra operations
   createMantra(mantra: InsertMantra, userId: string): Promise<Mantra>;
@@ -41,24 +43,39 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // User operations - Required for Replit Auth
+  // User operations - Username/Password Auth
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(username: string, password: string, email?: string): Promise<User> {
+    const hashedPassword = await bcrypt.hash(password, 12);
     const [user] = await db
       .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
+      .values({
+        username,
+        password: hashedPassword,
+        email: email || null,
       })
       .returning();
+    return user;
+  }
+
+  async verifyUserPassword(username: string, password: string): Promise<User | undefined> {
+    const user = await this.getUserByUsername(username);
+    if (!user) {
+      return undefined;
+    }
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      return undefined;
+    }
     return user;
   }
 
