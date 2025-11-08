@@ -435,6 +435,11 @@ export function AudioPlayer({
     }
   };
 
+  // Check if song is ready to play
+  const isSongReady = song.status === 'completed' && song.audioUrl;
+  const isGenerating = song.status === 'generating';
+  const hasError = song.status === 'error';
+
   return (
     <div className="w-full space-y-4">
       <Card data-testid="audio-player">
@@ -444,7 +449,19 @@ export function AudioPlayer({
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="flex-1">
                 <h3 className="font-bold text-lg mb-1" data-testid="text-song-title">{song.title}</h3>
-                <Badge variant="secondary" data-testid="badge-genre">{song.genre}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" data-testid="badge-genre">{song.genre}</Badge>
+                  {isGenerating && (
+                    <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400" data-testid="badge-generating">
+                      Generating...
+                    </Badge>
+                  )}
+                  {hasError && (
+                    <Badge variant="destructive" data-testid="badge-error">
+                      Generation Failed
+                    </Badge>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <DropdownMenu>
@@ -454,6 +471,7 @@ export function AudioPlayer({
                       size="sm"
                       className="gap-2"
                       data-testid="button-download"
+                      disabled={!isSongReady}
                     >
                       <Download className="h-4 w-4" />
                       Download
@@ -463,6 +481,7 @@ export function AudioPlayer({
                     <DropdownMenuItem
                       onClick={handleDownloadAudio}
                       data-testid="menu-download-audio"
+                      disabled={!isSongReady}
                     >
                       <FileAudio className="mr-2 h-4 w-4" />
                       Audio Only
@@ -470,7 +489,7 @@ export function AudioPlayer({
                     <DropdownMenuItem
                       onClick={handleDownloadVideo}
                       data-testid="menu-download-video"
-                      disabled={!song.lyrics}
+                      disabled={!isSongReady || !song.lyrics}
                     >
                       <Video className="mr-2 h-4 w-4" />
                       Video with Lyrics
@@ -483,6 +502,7 @@ export function AudioPlayer({
                   onClick={handleShare}
                   className="gap-2"
                   data-testid="button-share"
+                  disabled={!isSongReady}
                 >
                   <Share2 className="h-4 w-4" />
                   Share
@@ -525,6 +545,7 @@ export function AudioPlayer({
             step={0.1}
             onValueChange={handleSeek}
             className="w-full"
+            disabled={!isSongReady}
             data-testid="slider-progress"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
@@ -550,6 +571,7 @@ export function AudioPlayer({
               size="icon"
               className="h-12 w-12"
               onClick={togglePlay}
+              disabled={!isSongReady}
               data-testid="button-play-pause"
             >
               {isPlaying ? (
