@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Play, Pause, SkipBack, SkipForward, Volume2, Music2, X } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, Music2, X, Download, Share2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { LyricsDisplay } from "@/components/lyrics-display";
+import { useToast } from "@/hooks/use-toast";
 import type { Song } from "@shared/schema";
 
 interface AudioPlayerProps {
@@ -28,6 +29,7 @@ export function AudioPlayer({
   const [volume, setVolume] = useState(1);
   const [showLyrics, setShowLyrics] = useState(true); // Show lyrics by default
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -79,38 +81,155 @@ export function AudioPlayer({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const handleDownload = async () => {
+    if (!song.audioUrl) {
+      toast({
+        title: "Download Failed",
+        description: "Audio file not available for download.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Preparing Download",
+        description: "Fetching audio file...",
+      });
+
+      // Fetch the audio file as a blob to handle cross-origin downloads
+      const response = await fetch(song.audioUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch audio file');
+      }
+      
+      const blob = await response.blob();
+      
+      // Create a temporary URL for the blob
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `${song.title}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the blob URL after a short delay
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+
+      toast({
+        title: "Download Started",
+        description: `Downloading "${song.title}"...`,
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "Could not download the song. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: song.title,
+      text: `Check out my mantra song: ${song.title}`,
+      url: window.location.href,
+    };
+
+    // Try Web Share API first (mobile/modern browsers)
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast({
+          title: "Shared Successfully",
+          description: "Song shared!",
+        });
+      } catch (error) {
+        // User cancelled or error occurred
+        if ((error as Error).name !== 'AbortError') {
+          toast({
+            title: "Share Failed",
+            description: "Could not share the song.",
+            variant: "destructive",
+          });
+        }
+      }
+    } else {
+      // Fallback: Copy link to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link Copied",
+          description: "Song link copied to clipboard!",
+        });
+      } catch (error) {
+        toast({
+          title: "Copy Failed",
+          description: "Could not copy link to clipboard.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <div className="w-full space-y-4">
       <Card data-testid="audio-player">
         <CardContent className="p-6">
           {/* Song Info */}
           <div className="mb-6">
-            <div className="flex items-start justify-between mb-2">
+            <div className="flex items-start justify-between gap-2 mb-2">
               <div className="flex-1">
                 <h3 className="font-bold text-lg mb-1" data-testid="text-song-title">{song.title}</h3>
                 <Badge variant="secondary" data-testid="badge-genre">{song.genre}</Badge>
               </div>
-              {song.lyrics && (
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowLyrics(!showLyrics)}
+                  onClick={handleDownload}
                   className="gap-2"
-                  data-testid="button-toggle-lyrics"
+                  data-testid="button-download"
                 >
-                  {showLyrics ? (
-                    <>
-                      <X className="h-4 w-4" />
-                      Hide Lyrics
-                    </>
-                  ) : (
-                    <>
-                      <Music2 className="h-4 w-4" />
-                      Show Lyrics
-                    </>
-                  )}
+                  <Download className="h-4 w-4" />
+                  Download
                 </Button>
-              )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShare}
+                  className="gap-2"
+                  data-testid="button-share"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share
+                </Button>
+                {song.lyrics && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowLyrics(!showLyrics)}
+                    className="gap-2"
+                    data-testid="button-toggle-lyrics"
+                  >
+                    {showLyrics ? (
+                      <>
+                        <X className="h-4 w-4" />
+                        Hide Lyrics
+                      </>
+                    ) : (
+                      <>
+                        <Music2 className="h-4 w-4" />
+                        Show Lyrics
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
             {!showLyrics && song.lyrics && (
               <p className="text-sm text-muted-foreground italic mt-3 line-clamp-2" data-testid="text-lyrics">
