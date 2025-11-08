@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Play, Pause, SkipBack, SkipForward, Volume2, Music2, X, Download, Share2, FileAudio, Video } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, Music2, X, Download, Share2, FileAudio, Video, Repeat, Repeat1 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { LyricsDisplay } from "@/components/lyrics-display";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Song } from "@shared/schema";
+
+type LoopMode = 'off' | 'song' | 'library';
 
 interface AudioPlayerProps {
   song: Song;
@@ -34,6 +36,7 @@ export function AudioPlayer({
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [showLyrics, setShowLyrics] = useState(true); // Show lyrics by default
+  const [loopMode, setLoopMode] = useState<LoopMode>('off');
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
 
@@ -43,7 +46,22 @@ export function AudioPlayer({
 
     const updateTime = () => setCurrentTime(audio.currentTime);
     const updateDuration = () => setDuration(audio.duration);
-    const handleEnded = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      
+      // Handle different loop modes
+      if (loopMode === 'song') {
+        // Loop current song
+        if (audio) {
+          audio.currentTime = 0;
+          audio.play();
+          setIsPlaying(true);
+        }
+      } else if (loopMode === 'library' && onNext && hasNext) {
+        // Auto-play next song in library
+        onNext();
+      }
+    };
 
     audio.addEventListener("timeupdate", updateTime);
     audio.addEventListener("loadedmetadata", updateDuration);
@@ -54,7 +72,7 @@ export function AudioPlayer({
       audio.removeEventListener("loadedmetadata", updateDuration);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, []);
+  }, [loopMode, onNext, hasNext]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -85,6 +103,29 @@ export function AudioPlayer({
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const toggleLoop = () => {
+    // Cycle through: off -> song -> library -> off
+    if (loopMode === 'off') {
+      setLoopMode('song');
+      toast({
+        title: "Loop: Song",
+        description: "Current song will repeat",
+      });
+    } else if (loopMode === 'song') {
+      setLoopMode('library');
+      toast({
+        title: "Loop: Library",
+        description: "All songs will play continuously",
+      });
+    } else {
+      setLoopMode('off');
+      toast({
+        title: "Loop: Off",
+        description: "Songs will stop after playing",
+      });
+    }
   };
 
   const handleDownloadAudio = async () => {
@@ -589,6 +630,21 @@ export function AudioPlayer({
               data-testid="button-next"
             >
               <SkipForward className="h-5 w-5" />
+            </Button>
+
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={toggleLoop}
+              disabled={!isSongReady}
+              data-testid="button-loop"
+              className={loopMode !== 'off' ? 'text-primary' : ''}
+            >
+              {loopMode === 'song' ? (
+                <Repeat1 className="h-5 w-5" />
+              ) : (
+                <Repeat className="h-5 w-5" />
+              )}
             </Button>
           </div>
 
