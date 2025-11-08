@@ -6,19 +6,90 @@ import { generateLyrics, generateSongTitle } from "./lib/openai";
 import { generateMusic } from "./lib/suno";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupLocalAuth, isAuthenticated } from "./auth/local";
 import { storage } from "./storage";
+import passport from "passport";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication middleware
-  await setupAuth(app);
+  await setupLocalAuth(app);
+
+  // Auth routes
+  // Signup endpoint
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const bodySchema = z.object({
+        username: z.string().min(3).max(50),
+        password: z.string().min(8),
+        email: z.string().email().optional(),
+      });
+
+      const { username, password, email } = bodySchema.parse(req.body);
+
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // Create user
+      const user = await storage.createUser(username, password, email);
+
+      // Auto-login after signup
+      req.login({ id: user.id, username: user.username }, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Signup successful but login failed" });
+        }
+        res.json({ id: user.id, username: user.username, email: user.email });
+      });
+    } catch (error) {
+      console.error("Signup error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create account" });
+    }
+  });
+
+  // Login endpoint
+  app.post("/api/auth/login", (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        return res.status(500).json({ message: "Login failed" });
+      }
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Invalid credentials" });
+      }
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          return res.status(500).json({ message: "Login failed" });
+        }
+        return res.json({ id: user.id, username: user.username });
+      });
+    })(req, res, next);
+  });
+
+  // Logout endpoint
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
+  });
 
   // Auth route to get current user
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
-      res.json(user);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      // Return user without password
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -39,7 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all songs (protected)
   app.get("/api/songs", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const allSongs = await storage.getAllSongs(userId);
       res.json(allSongs);
     } catch (error) {
@@ -51,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get songs by playlist type (protected)
   app.get("/api/playlists/:type/songs", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { type } = req.params;
       const playlistSongs = await storage.getSongsByPlaylistType(userId, type);
       res.json(playlistSongs);
@@ -64,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate a new song from mantra (protected)
   app.post("/api/songs/generate", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const bodySchema = z.object({
         text: z.string().min(1),
         genre: z.enum(["soul", "blues", "hip-hop", "reggae", "pop", "acoustic"]),
@@ -139,7 +210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/songs/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const song = await storage.getSong(id, userId);
       
       if (!song) {
@@ -158,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/songs/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const bodySchema = z.object({
         title: z.string().min(1, "Title cannot be empty"),
       });
@@ -187,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/songs/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       const wasDeleted = await storage.deleteSong(id, userId);
 
