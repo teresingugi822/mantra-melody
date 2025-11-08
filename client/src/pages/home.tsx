@@ -1,12 +1,26 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Music, Pen, Headphones, Sparkles, Heart, Sun, Moon, LogOut } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import heroImage from "@assets/generated_images/Hero_sunrise_meditation_scene_7b6760e5.png";
 
 export default function Home() {
+  const [, setLocation] = useLocation();
+  
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("/api/auth/logout", "POST");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/");
+    },
+  });
+
   const handleLogout = () => {
-    window.location.href = "/api/logout";
+    logoutMutation.mutate();
   };
 
   return (

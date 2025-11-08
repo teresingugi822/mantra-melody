@@ -1,11 +1,10 @@
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Music2, Sparkles, Heart, Headphones } from "lucide-react";
 
 export default function Landing() {
-  const handleLogin = () => {
-    window.location.href = "/api/login";
-  };
+  const [, setLocation] = useLocation();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -15,9 +14,14 @@ export default function Landing() {
             <Music2 className="h-6 w-6 text-primary" />
             <span className="font-bold text-xl">Mantra Music</span>
           </div>
-          <Button onClick={handleLogin} data-testid="button-login">
-            Log In
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setLocation("/login")} data-testid="button-login">
+              Log In
+            </Button>
+            <Button onClick={() => setLocation("/signup")} data-testid="button-signup">
+              Sign Up
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -32,7 +36,7 @@ export default function Landing() {
               Turn your personal affirmations, goals, and daily mantras into custom AI-generated songs.
               Experience the power of your words through music.
             </p>
-            <Button size="lg" onClick={handleLogin} className="gap-2" data-testid="button-get-started">
+            <Button size="lg" onClick={() => setLocation("/signup")} className="gap-2" data-testid="button-get-started">
               <Sparkles className="h-5 w-5" />
               Get Started
             </Button>
@@ -88,7 +92,7 @@ export default function Landing() {
             <p className="text-muted-foreground mb-8">
               Create your first personalized mantra song in minutes
             </p>
-            <Button size="lg" onClick={handleLogin} className="gap-2" data-testid="button-start-journey">
+            <Button size="lg" onClick={() => setLocation("/signup")} className="gap-2" data-testid="button-start-journey">
               <Music2 className="h-5 w-5" />
               Start Creating
             </Button>
