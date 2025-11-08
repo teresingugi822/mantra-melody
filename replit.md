@@ -54,7 +54,7 @@ Preferred communication style: Simple, everyday language.
 **ORM**: Drizzle ORM for type-safe database queries and schema management.
 
 **Database Schema**:
-- `users` table - User accounts from OIDC (id from sub claim, email, name, timestamps)
+- `users` table - User accounts with username/password authentication (id, username unique, password hashed, optional email, timestamps)
 - `sessions` table - PostgreSQL session storage (managed by connect-pg-simple)
 - `mantras` table - User-written text with UUID primary keys and userId foreign key
 - `songs` table - Generated songs linked to mantras and users, includes title, genre, lyrics, audio URL, status (pending/generating/completed/error), optional playlist type, voice characteristics (vocalGender, vocalStyle), useExactLyrics flag, and userId foreign key
@@ -88,24 +88,26 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication & Sessions
 
-**Multi-User Authentication**: The application uses Replit Auth (OpenID Connect) for secure user authentication with support for multiple login methods (Google, GitHub, email/password, and more).
+**Multi-User Authentication**: The application uses username/password authentication for secure user access with session-based state management.
 
 **Implementation Details**:
-- Auth Provider: Replit Auth (OIDC) configured in `server/replitAuth.ts`
+- Auth Module: Passport.js local strategy configured in `server/auth/local.ts`
+- Password Hashing: bcryptjs with 12 salt rounds for secure password storage
 - Session Storage: PostgreSQL-backed sessions using `connect-pg-simple`
 - Session Secret: Stored in `SESSION_SECRET` environment variable
 - Cookie Settings: Secure, HTTP-only, SameSite=Lax with 7-day expiration
 
 **Authentication Flow**:
-1. Unauthenticated users see landing page at `/` 
-2. Login initiated via `/api/login` (redirects to OIDC provider)
-3. OIDC callback at `/api/callback` creates user record and session
+1. Unauthenticated users see landing page at `/` with signup/login options
+2. Signup via `/signup` page - creates new user with hashed password
+3. Login via `/login` page - validates credentials and creates session
 4. Authenticated users redirected to home page with access to all features
-5. Logout via `/api/logout` destroys session and redirects to landing
+5. Logout via logout button - POST to `/api/auth/logout`, destroys session and redirects to landing
 
 **User Data Model**:
-- `users` table stores OIDC user information (id, email, name, timestamps)
-- User ID comes from OIDC claim `sub` (subject identifier)
+- `users` table stores user accounts (id, username, password hash, optional email, timestamps)
+- Username is unique and required for authentication
+- Password is hashed with bcryptjs before storage (never stored as plaintext)
 - All user-owned resources (mantras, songs) include `userId` foreign key
 
 **Data Isolation & Security**:
@@ -114,12 +116,13 @@ Preferred communication style: Simple, everyday language.
 - Methods like `getSong(id, userId)` ensure users can only access their own data
 - Direct database access avoided - all operations go through storage abstraction
 - Failed ownership checks return 404 (not 403) to prevent information leakage
+- Password verification uses constant-time comparison via bcrypt.compare()
 
 **API Routes**:
-- `/api/auth/user` - Returns current user info (GET)
-- `/api/login` - Initiates OIDC login flow
-- `/api/callback` - OIDC callback handler
-- `/api/logout` - Destroys session and logs out
+- `GET /api/auth/user` - Returns current user info or 401 if unauthenticated
+- `POST /api/auth/signup` - Creates new user account with username and password
+- `POST /api/auth/login` - Authenticates user credentials and creates session
+- `POST /api/auth/logout` - Destroys session and logs out user
 - All `/api/songs/*` and `/api/playlists/*` routes require authentication
 
 ## External Dependencies
