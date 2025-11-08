@@ -22,6 +22,8 @@ interface AudioPlayerProps {
   onPrevious?: () => void;
   hasNext?: boolean;
   hasPrevious?: boolean;
+  initialLoopMode?: LoopMode;
+  onLoopModeChange?: (mode: LoopMode) => void;
 }
 
 export function AudioPlayer({ 
@@ -29,16 +31,26 @@ export function AudioPlayer({
   onNext, 
   onPrevious, 
   hasNext = false, 
-  hasPrevious = false 
+  hasPrevious = false,
+  initialLoopMode = 'off',
+  onLoopModeChange
 }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [showLyrics, setShowLyrics] = useState(true); // Show lyrics by default
-  const [loopMode, setLoopMode] = useState<LoopMode>('off');
+  const [loopMode, setLoopMode] = useState<LoopMode>(initialLoopMode);
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
+
+  // Update loop mode when Play All starts (initialLoopMode changes to 'library')
+  // Don't overwrite user toggles when Play All ends (initialLoopMode changes to 'off')
+  useEffect(() => {
+    if (initialLoopMode === 'library') {
+      setLoopMode('library');
+    }
+  }, [initialLoopMode]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -57,8 +69,8 @@ export function AudioPlayer({
           audio.play();
           setIsPlaying(true);
         }
-      } else if (loopMode === 'library' && onNext && hasNext) {
-        // Auto-play next song in library
+      } else if (loopMode === 'library' && onNext) {
+        // Auto-play next song in library (even if at end - will wrap around)
         onNext();
       }
     };
@@ -79,6 +91,39 @@ export function AudioPlayer({
       audioRef.current.volume = volume;
     }
   }, [volume]);
+
+  // Auto-play when entering library loop mode (for "Play All")
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !song.audioUrl) return;
+
+    // When loop mode changes to 'library', auto-start playback
+    if (loopMode === 'library' && !isPlaying) {
+      audio.play().then(() => {
+        setIsPlaying(true);
+      }).catch(err => {
+        console.error('Auto-play failed:', err);
+        setIsPlaying(false);
+      });
+    }
+  }, [loopMode]); // Trigger only when loop mode changes
+
+  // Auto-play when song changes in library loop mode
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !song.audioUrl) return;
+
+    // In library loop mode, auto-play the new song when it changes
+    // Only check loopMode state so users can toggle loop mode during playback
+    if (loopMode === 'library') {
+      audio.play().then(() => {
+        setIsPlaying(true);
+      }).catch(err => {
+        console.error('Auto-play failed:', err);
+        setIsPlaying(false);
+      });
+    }
+  }, [song.id]); // Trigger only when song changes
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -107,20 +152,27 @@ export function AudioPlayer({
 
   const toggleLoop = () => {
     // Cycle through: off -> song -> library -> off
+    let newMode: LoopMode;
     if (loopMode === 'off') {
-      setLoopMode('song');
+      newMode = 'song';
+      setLoopMode(newMode);
+      onLoopModeChange?.(newMode);
       toast({
         title: "Loop: Song",
         description: "Current song will repeat",
       });
     } else if (loopMode === 'song') {
-      setLoopMode('library');
+      newMode = 'library';
+      setLoopMode(newMode);
+      onLoopModeChange?.(newMode);
       toast({
         title: "Loop: Library",
         description: "All songs will play continuously",
       });
     } else {
-      setLoopMode('off');
+      newMode = 'off';
+      setLoopMode(newMode);
+      onLoopModeChange?.(newMode);
       toast({
         title: "Loop: Off",
         description: "Songs will stop after playing",

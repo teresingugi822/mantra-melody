@@ -4,12 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { SongCard } from "@/components/song-card";
 import { AudioPlayer } from "@/components/audio-player";
-import { Music, ArrowLeft, Plus, Loader2 } from "lucide-react";
+import { Music, ArrowLeft, Plus, Loader2, PlayCircle } from "lucide-react";
 import type { Song } from "@shared/schema";
 
 export default function Library() {
   const [, navigate] = useLocation();
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [playAllMode, setPlayAllMode] = useState(false);
+  const [wrapCounter, setWrapCounter] = useState(0); // Force re-render on single-song wrap
 
   const { data: songs, isLoading } = useQuery<Song[]>({
     queryKey: ["/api/songs"],
@@ -17,27 +19,67 @@ export default function Library() {
 
   const handlePlaySong = (song: Song) => {
     setSelectedSong(song);
+    setPlayAllMode(false); // Disable play all mode when manually selecting a song
+  };
+
+  // Filter to only include ready songs (completed with audio)
+  const readySongs = songs?.filter(s => s.status === 'completed' && s.audioUrl) || [];
+
+  const handlePlayAll = () => {
+    // Use the same readySongs filter for consistency
+    if (readySongs.length > 0) {
+      setSelectedSong(readySongs[0]);
+      setPlayAllMode(true); // Enable play all mode (library loop)
+    }
   };
 
   const handleNext = () => {
-    if (!selectedSong || !songs) return;
-    const currentIndex = songs.findIndex(s => s.id === selectedSong.id);
-    if (currentIndex < songs.length - 1) {
-      setSelectedSong(songs[currentIndex + 1]);
+    if (!selectedSong || !readySongs.length) return;
+    const currentIndex = readySongs.findIndex(s => s.id === selectedSong.id);
+    if (currentIndex >= 0) {
+      if (currentIndex < readySongs.length - 1) {
+        // Go to next song
+        setSelectedSong(readySongs[currentIndex + 1]);
+      } else {
+        // Wrap around to first song for library loop
+        setSelectedSong(readySongs[0]);
+        // Force re-render for single-song case (same object reference)
+        setWrapCounter(prev => prev + 1);
+      }
     }
   };
 
   const handlePrevious = () => {
-    if (!selectedSong || !songs) return;
-    const currentIndex = songs.findIndex(s => s.id === selectedSong.id);
-    if (currentIndex > 0) {
-      setSelectedSong(songs[currentIndex - 1]);
+    if (!selectedSong || !readySongs.length) return;
+    const currentIndex = readySongs.findIndex(s => s.id === selectedSong.id);
+    if (currentIndex >= 0) {
+      if (currentIndex > 0) {
+        // Go to previous song
+        setSelectedSong(readySongs[currentIndex - 1]);
+      } else {
+        // Wrap around to last song for library loop
+        setSelectedSong(readySongs[readySongs.length - 1]);
+        // Force re-render for single-song case (same object reference)
+        setWrapCounter(prev => prev + 1);
+      }
     }
   };
 
-  const currentIndex = selectedSong && songs ? songs.findIndex(s => s.id === selectedSong.id) : -1;
-  const hasNext = currentIndex >= 0 && currentIndex < (songs?.length || 0) - 1;
-  const hasPrevious = currentIndex > 0;
+  const handleLoopModeChange = (mode: 'off' | 'song' | 'library') => {
+    // Sync playAllMode with loop mode changes from AudioPlayer
+    setPlayAllMode(mode === 'library');
+  };
+
+  const currentIndex = selectedSong && readySongs ? readySongs.findIndex(s => s.id === selectedSong.id) : -1;
+  
+  // In play all mode (library loop), always allow next/previous if there are ready songs
+  // Otherwise, only allow if there's actually a next/previous song in the linear list
+  const hasNext = playAllMode 
+    ? readySongs.length > 1 
+    : currentIndex >= 0 && currentIndex < readySongs.length - 1;
+  const hasPrevious = playAllMode 
+    ? readySongs.length > 1 
+    : currentIndex > 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,23 +112,40 @@ export default function Library() {
       {/* Main Content */}
       <div className="container max-w-6xl px-4 md:px-6 py-12">
         <div className="mb-12">
-          <h1 className="text-4xl font-bold font-serif mb-4" data-testid="text-page-title">
-            Your Mantra Library
-          </h1>
-          <p className="text-lg text-muted-foreground" data-testid="text-page-subtitle">
-            All your personalized mantra songs in one place
-          </p>
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-4xl font-bold font-serif mb-2" data-testid="text-page-title">
+                Your Mantra Library
+              </h1>
+              <p className="text-lg text-muted-foreground" data-testid="text-page-subtitle">
+                All your personalized mantra songs in one place
+              </p>
+            </div>
+            {songs && songs.length > 0 && (
+              <Button
+                onClick={handlePlayAll}
+                size="lg"
+                className="gap-2"
+                data-testid="button-play-all"
+              >
+                <PlayCircle className="h-5 w-5" />
+                Play All
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Current Player */}
         {selectedSong && (
-          <div className="mb-8">
+          <div className="mb-8" key={`${selectedSong.id}-${wrapCounter}`}>
             <AudioPlayer
               song={selectedSong}
               onNext={handleNext}
               onPrevious={handlePrevious}
               hasNext={hasNext}
               hasPrevious={hasPrevious}
+              initialLoopMode={playAllMode ? 'library' : 'off'}
+              onLoopModeChange={handleLoopModeChange}
             />
           </div>
         )}
