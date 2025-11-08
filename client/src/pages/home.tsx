@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Music, Pen, Headphones, Sparkles, Heart, Sun, Moon, LogOut } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -47,14 +48,21 @@ export default function Home() {
             <Link href="/create">
               <Button data-testid="button-get-started">Get Started</Button>
             </Link>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleLogout}
-              data-testid="button-logout"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={handleLogout}
+                  data-testid="button-logout"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Sign Out</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </header>
