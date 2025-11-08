@@ -105,42 +105,28 @@ export async function setupAuth(app: Express) {
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
-  const getAppDomain = (req: any): string => {
-    // Use REPLIT_DEV_DOMAIN in development or REPLIT_DOMAINS in production
-    const replitDomain = process.env.REPLIT_DEV_DOMAIN || 
-                         process.env.REPLIT_DOMAINS?.split(',')[0];
-    if (replitDomain) {
-      return replitDomain;
-    }
-    // Fallback to request hostname
-    return req.hostname || req.get('host') || 'localhost';
-  };
-
   app.get("/api/login", (req, res, next) => {
-    const domain = getAppDomain(req);
-    ensureStrategy(domain);
-    passport.authenticate(`replitauth:${domain}`, {
+    ensureStrategy(req.hostname);
+    passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    const domain = getAppDomain(req);
-    ensureStrategy(domain);
-    passport.authenticate(`replitauth:${domain}`, {
+    ensureStrategy(req.hostname);
+    passport.authenticate(`replitauth:${req.hostname}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     })(req, res, next);
   });
 
   app.get("/api/logout", (req, res) => {
-    const domain = getAppDomain(req);
     req.logout(() => {
       res.redirect(
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `https://${domain}`,
+          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
         }).href
       );
     });
