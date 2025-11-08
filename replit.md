@@ -6,6 +6,16 @@ Mantra Music is a web application that transforms personal mantras, affirmations
 
 **Core Purpose**: Create an emotionally uplifting, transformation-focused experience that empowers users through personalized music generated from their own words.
 
+## Recent Changes
+
+### Loop & Continuous Playback (November 2025)
+Implemented comprehensive playback controls with three loop modes and continuous library playback:
+- **Loop Modes**: Off (stops after song), Song (repeat current track), Library (continuous playback with wrap-around)
+- **Play All**: One-click button starts continuous playback through all ready songs
+- **Smart Navigation**: Next/Previous buttons skip incomplete songs and wrap around in library mode
+- **Single-Song Loop**: Force remount using wrapCounter to restart audio when wrapping to same song
+- **State Sync**: Loop mode changes propagate from AudioPlayer to Library page via callback
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -22,12 +32,25 @@ Preferred communication style: Simple, everyday language.
 - Landing page (`/`) - Shown to unauthenticated users with login/signup options
 - Home page (`/`) - Shown to authenticated users with full app access
 - Create/compose page (`/create`) - Authenticated only
-- Library view (`/library`) - Authenticated only
+- Library view (`/library`) - Authenticated only with Play All functionality
 - Playlist views (`/playlists/:type`) - Authenticated only
 
 **Authentication Hook**: `useAuth()` hook provides user state, loading status, and authentication status throughout the app
 
 **State Management**: TanStack Query (React Query) for server state management, API requests, and caching. No global state management library - component state and React Query handle all data flow.
+
+**Music Playback System**:
+- **AudioPlayer Component**: Manages playback state, loop modes, and auto-play logic
+  - Three loop modes: 'off', 'song', 'library'
+  - Auto-play effects for library mode (on mode change and song change)
+  - Visual indicators (Repeat icon for library, Repeat1 for song)
+  - Callback system for syncing loop mode changes to parent
+- **Library Page**: Manages song selection and continuous playback
+  - "Play All" button enables library loop mode and starts first ready song
+  - Ready songs filter (status='completed' + audioUrl present)
+  - Wrap-around navigation in both directions (next/previous)
+  - wrapCounter state forces AudioPlayer remount for single-song loops
+  - hasNext/hasPrevious computed based on playAllMode for correct control states
 
 **Design System**: Custom design guidelines inspired by wellness apps (Calm/Headspace) and music platforms (Spotify), emphasizing:
 - Soothing gradients and uplifting imagery
