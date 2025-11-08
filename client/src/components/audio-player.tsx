@@ -535,10 +535,11 @@ export function AudioPlayer({
 
   return (
     <div className="w-full space-y-4">
+      {/* Song Info Card */}
       <Card data-testid="audio-player">
         <CardContent className="p-6">
           {/* Song Info */}
-          <div className="mb-6">
+          <div className="mb-4">
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="flex-1">
                 <h3 className="font-bold text-lg mb-1" data-testid="text-song-title">{song.title}</h3>
@@ -630,90 +631,6 @@ export function AudioPlayer({
             )}
           </div>
 
-          {/* Progress Bar */}
-          <div className="space-y-2 mb-4">
-          <Slider
-            value={[currentTime]}
-            max={duration || 100}
-            step={0.1}
-            onValueChange={handleSeek}
-            className="w-full"
-            disabled={!isSongReady}
-            data-testid="slider-progress"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span data-testid="text-current-time">{formatTime(currentTime)}</span>
-            <span data-testid="text-duration">{formatTime(duration)}</span>
-          </div>
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={onPrevious}
-              disabled={!hasPrevious}
-              data-testid="button-previous"
-            >
-              <SkipBack className="h-5 w-5" />
-            </Button>
-            
-            <Button
-              size="icon"
-              className="h-12 w-12"
-              onClick={togglePlay}
-              disabled={!isSongReady}
-              data-testid="button-play-pause"
-            >
-              {isPlaying ? (
-                <Pause className="h-6 w-6" />
-              ) : (
-                <Play className="h-6 w-6" />
-              )}
-            </Button>
-
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={onNext}
-              disabled={!hasNext}
-              data-testid="button-next"
-            >
-              <SkipForward className="h-5 w-5" />
-            </Button>
-
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={toggleLoop}
-              disabled={!isSongReady}
-              data-testid="button-loop"
-              className={loopMode !== 'off' ? 'text-primary' : ''}
-            >
-              {loopMode === 'song' ? (
-                <Repeat1 className="h-5 w-5" />
-              ) : (
-                <Repeat className="h-5 w-5" />
-              )}
-            </Button>
-          </div>
-
-          {/* Volume Control */}
-          <div className="flex items-center gap-2 w-32">
-            <Volume2 className="h-4 w-4 text-muted-foreground" />
-            <Slider
-              value={[volume * 100]}
-              max={100}
-              step={1}
-              onValueChange={(value) => setVolume(value[0] / 100)}
-              className="w-full"
-              data-testid="slider-volume"
-            />
-          </div>
-          </div>
-
           {/* Hidden Audio Element */}
           {song.audioUrl && (
             <audio ref={audioRef} src={song.audioUrl} preload="metadata" />
@@ -730,6 +647,95 @@ export function AudioPlayer({
           isPlaying={isPlaying}
         />
       )}
+
+      {/* Sticky Player Controls */}
+      <Card className="sticky bottom-4 z-10" data-testid="player-controls">
+        <CardContent className="p-4">
+          {/* Progress Bar */}
+          <div className="space-y-2 mb-4">
+            <Slider
+              value={[currentTime]}
+              max={duration || 100}
+              step={0.1}
+              onValueChange={handleSeek}
+              className="w-full"
+              disabled={!isSongReady}
+              data-testid="slider-progress"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span data-testid="text-current-time">{formatTime(currentTime)}</span>
+              <span data-testid="text-duration">{formatTime(duration)}</span>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={onPrevious}
+                disabled={!hasPrevious}
+                data-testid="button-previous"
+              >
+                <SkipBack className="h-5 w-5" />
+              </Button>
+              
+              <Button
+                size="icon"
+                className="h-12 w-12"
+                onClick={togglePlay}
+                disabled={!isSongReady}
+                data-testid="button-play-pause"
+              >
+                {isPlaying ? (
+                  <Pause className="h-6 w-6" />
+                ) : (
+                  <Play className="h-6 w-6" />
+                )}
+              </Button>
+
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={onNext}
+                disabled={!hasNext}
+                data-testid="button-next"
+              >
+                <SkipForward className="h-5 w-5" />
+              </Button>
+
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={toggleLoop}
+                disabled={!isSongReady}
+                data-testid="button-loop"
+                className={loopMode !== 'off' ? 'text-primary' : ''}
+              >
+                {loopMode === 'song' ? (
+                  <Repeat1 className="h-5 w-5" />
+                ) : (
+                  <Repeat className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+
+            {/* Volume Control */}
+            <div className="flex items-center gap-2 w-32">
+              <Volume2 className="h-4 w-4 text-muted-foreground" />
+              <Slider
+                value={[volume * 100]}
+                max={100}
+                step={1}
+                onValueChange={(value) => setVolume(value[0] / 100)}
+                className="w-full"
+                data-testid="slider-volume"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
