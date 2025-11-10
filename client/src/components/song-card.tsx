@@ -115,9 +115,10 @@ export function SongCard({ song, onPlay }: SongCardProps) {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 h-11 w-11 sm:h-9 sm:w-9"
                     onClick={handleSaveTitle}
                     disabled={updateTitleMutation.isPending}
+                    aria-label="Save title"
                     data-testid={`button-save-title-${song.id}`}
                   >
                     <Check className="h-4 w-4" />
@@ -125,9 +126,10 @@ export function SongCard({ song, onPlay }: SongCardProps) {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 h-11 w-11 sm:h-9 sm:w-9"
                     onClick={handleCancelEdit}
                     disabled={updateTitleMutation.isPending}
+                    aria-label="Cancel edit"
                     data-testid={`button-cancel-edit-${song.id}`}
                   >
                     <X className="h-4 w-4" />
@@ -157,16 +159,18 @@ export function SongCard({ song, onPlay }: SongCardProps) {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex gap-1 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
               {!isEditing && (
                 <>
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-11 w-11 sm:h-9 sm:w-9"
                     onClick={(e) => {
                       e.stopPropagation();
                       onPlay(song);
                     }}
+                    aria-label="Play song"
                     data-testid={`button-play-${song.id}`}
                   >
                     <Play className="h-4 w-4" />
@@ -174,10 +178,12 @@ export function SongCard({ song, onPlay }: SongCardProps) {
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-11 w-11 sm:h-9 sm:w-9"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsEditing(true);
                     }}
+                    aria-label="Edit song title"
                     data-testid={`button-edit-${song.id}`}
                   >
                     <Edit2 className="h-4 w-4" />
@@ -185,10 +191,12 @@ export function SongCard({ song, onPlay }: SongCardProps) {
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-11 w-11 sm:h-9 sm:w-9"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowDeleteDialog(true);
                     }}
+                    aria-label="Delete song"
                     data-testid={`button-delete-${song.id}`}
                   >
                     <Trash2 className="h-4 w-4" />

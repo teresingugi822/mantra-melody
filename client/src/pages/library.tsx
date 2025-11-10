@@ -127,8 +127,7 @@ export default function Library() {
             {songs && songs.length > 0 && (
               <Button
                 onClick={handlePlayAll}
-                size="lg"
-                className="gap-2 w-full sm:w-auto"
+                className="gap-2 w-full sm:w-auto h-11 sm:h-10"
                 data-testid="button-play-all"
               >
                 <PlayCircle className="h-5 w-5" />
