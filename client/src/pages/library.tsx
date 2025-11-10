@@ -89,35 +89,38 @@ export default function Library() {
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="gap-2"
+            className="gap-2 h-11 sm:h-auto"
+            aria-label="Back to Home"
             data-testid="button-back-home"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Home
+            <ArrowLeft className="h-5 w-5" />
+            <span className="hidden sm:inline">Back to Home</span>
           </Button>
           <div className="flex items-center gap-2">
             <Music className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold font-serif">Mantra Music</span>
+            <span className="text-lg sm:text-xl font-bold font-serif">Mantra Music</span>
           </div>
           <Button
             onClick={() => navigate("/create")}
+            className="h-11 sm:h-auto"
+            aria-label="Create New Song"
             data-testid="button-create-new"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Create New
+            <Plus className="h-5 w-5 sm:mr-2" />
+            <span className="hidden sm:inline">Create New</span>
           </Button>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="container max-w-6xl px-4 md:px-6 py-12">
-        <div className="mb-12">
-          <div className="flex items-start justify-between gap-4 mb-4">
+      <div className="container max-w-6xl px-4 md:px-6 py-6 sm:py-12">
+        <div className="mb-6 sm:mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-4xl font-bold font-serif mb-2" data-testid="text-page-title">
+              <h1 className="text-2xl sm:text-4xl font-bold font-serif mb-2" data-testid="text-page-title">
                 Your Mantra Library
               </h1>
-              <p className="text-lg text-muted-foreground" data-testid="text-page-subtitle">
+              <p className="text-base sm:text-lg text-muted-foreground" data-testid="text-page-subtitle">
                 All your personalized mantra songs in one place
               </p>
             </div>
@@ -125,7 +128,7 @@ export default function Library() {
               <Button
                 onClick={handlePlayAll}
                 size="lg"
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto"
                 data-testid="button-play-all"
               >
                 <PlayCircle className="h-5 w-5" />

@@ -2,7 +2,8 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Music, Pen, Headphones, Sparkles, Heart, Sun, Moon, LogOut } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Music, Pen, Headphones, Sparkles, Heart, Sun, Moon, LogOut, Menu } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import heroImage from "@assets/generated_images/Hero_sunrise_meditation_scene_7b6760e5.png";
@@ -31,8 +32,10 @@ export default function Home() {
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
             <Music className="h-6 w-6 text-primary" data-testid="icon-logo" />
-            <span className="text-xl font-bold font-serif" data-testid="text-logo">Mantra Music</span>
+            <span className="text-lg sm:text-xl font-bold font-serif" data-testid="text-logo">Mantra Music</span>
           </div>
+          
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             <a href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-how-it-works">
               How It Works
@@ -44,7 +47,9 @@ export default function Home() {
               Playlists
             </a>
           </nav>
-          <div className="flex items-center gap-2">
+          
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-2">
             <Link href="/create">
               <Button data-testid="button-get-started">Get Started</Button>
             </Link>
@@ -64,6 +69,42 @@ export default function Home() {
               </TooltipContent>
             </Tooltip>
           </div>
+
+          {/* Mobile Menu */}
+          <Sheet>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon" className="h-11 w-11" aria-label="Open menu" data-testid="button-mobile-menu">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+              <nav className="flex flex-col gap-6 mt-8">
+                <a href="#how-it-works" className="text-base font-medium hover:text-primary transition-colors" data-testid="link-mobile-how-it-works">
+                  How It Works
+                </a>
+                <a href="#features" className="text-base font-medium hover:text-primary transition-colors" data-testid="link-mobile-features">
+                  Features
+                </a>
+                <a href="#playlists" className="text-base font-medium hover:text-primary transition-colors" data-testid="link-mobile-playlists">
+                  Playlists
+                </a>
+                <div className="border-t pt-6 space-y-4">
+                  <Link href="/create" className="block">
+                    <Button className="w-full" data-testid="button-mobile-get-started">Get Started</Button>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    className="w-full gap-2"
+                    onClick={handleLogout}
+                    data-testid="button-mobile-logout"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    Sign Out
+                  </Button>
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </header>
 

@@ -537,13 +537,13 @@ export function AudioPlayer({
     <div className="w-full space-y-4">
       {/* Song Info Card */}
       <Card data-testid="audio-player">
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           {/* Song Info */}
           <div className="mb-4">
-            <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-2 mb-2">
               <div className="flex-1">
-                <h3 className="font-bold text-lg mb-1" data-testid="text-song-title">{song.title}</h3>
-                <div className="flex items-center gap-2">
+                <h3 className="font-bold text-base sm:text-lg mb-2" data-testid="text-song-title">{song.title}</h3>
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="secondary" data-testid="badge-genre">{song.genre}</Badge>
                   {isGenerating && (
                     <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400" data-testid="badge-generating">
@@ -557,18 +557,18 @@ export function AudioPlayer({
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
-                      size="sm"
-                      className="gap-2"
+                      className="gap-2 h-11 sm:h-9"
+                      aria-label="Download song"
                       data-testid="button-download"
                       disabled={!isSongReady}
                     >
                       <Download className="h-4 w-4" />
-                      Download
+                      <span className="hidden xs:inline">Download</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -592,32 +592,32 @@ export function AudioPlayer({
                 </DropdownMenu>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={handleShare}
-                  className="gap-2"
+                  className="gap-2 h-11 sm:h-9"
+                  aria-label="Share song"
                   data-testid="button-share"
                   disabled={!isSongReady}
                 >
                   <Share2 className="h-4 w-4" />
-                  Share
+                  <span className="hidden xs:inline">Share</span>
                 </Button>
                 {song.lyrics && (
                   <Button
                     variant="outline"
-                    size="sm"
                     onClick={() => setShowLyrics(!showLyrics)}
-                    className="gap-2"
+                    className="gap-2 h-11 sm:h-9"
+                    aria-label={showLyrics ? "Hide lyrics" : "Show lyrics"}
                     data-testid="button-toggle-lyrics"
                   >
                     {showLyrics ? (
                       <>
                         <X className="h-4 w-4" />
-                        Hide Lyrics
+                        <span className="hidden xs:inline">Hide</span> Lyrics
                       </>
                     ) : (
                       <>
                         <Music2 className="h-4 w-4" />
-                        Show Lyrics
+                        <span className="hidden xs:inline">Show</span> Lyrics
                       </>
                     )}
                   </Button>
@@ -649,16 +649,16 @@ export function AudioPlayer({
       )}
 
       {/* Sticky Player Controls */}
-      <Card className="sticky bottom-4 z-10" data-testid="player-controls">
-        <CardContent className="p-4">
+      <Card className="sticky bottom-2 sm:bottom-4 z-10" data-testid="player-controls">
+        <CardContent className="p-3 sm:p-4">
           {/* Progress Bar */}
-          <div className="space-y-2 mb-4">
+          <div className="space-y-2 mb-3 sm:mb-4">
             <Slider
               value={[currentTime]}
               max={duration || 100}
               step={0.1}
               onValueChange={handleSeek}
-              className="w-full"
+              className="w-full touch-target"
               disabled={!isSongReady}
               data-testid="slider-progress"
             />
@@ -668,30 +668,32 @@ export function AudioPlayer({
             </div>
           </div>
 
-          {/* Controls */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          {/* Controls Layout: Stack volume on mobile, side-by-side on desktop */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Playback Controls */}
+            <div className="flex items-center justify-center gap-3 sm:gap-2">
               <Button
                 size="icon"
                 variant="ghost"
                 onClick={onPrevious}
                 disabled={!hasPrevious}
                 data-testid="button-previous"
+                className="h-11 w-11 sm:h-9 sm:w-9"
               >
-                <SkipBack className="h-5 w-5" />
+                <SkipBack className="h-5 w-5 sm:h-5 sm:w-5" />
               </Button>
               
               <Button
                 size="icon"
-                className="h-12 w-12"
+                className="h-14 w-14 sm:h-12 sm:w-12"
                 onClick={togglePlay}
                 disabled={!isSongReady}
                 data-testid="button-play-pause"
               >
                 {isPlaying ? (
-                  <Pause className="h-6 w-6" />
+                  <Pause className="h-7 w-7 sm:h-6 sm:w-6" />
                 ) : (
-                  <Play className="h-6 w-6" />
+                  <Play className="h-7 w-7 sm:h-6 sm:w-6" />
                 )}
               </Button>
 
@@ -701,8 +703,9 @@ export function AudioPlayer({
                 onClick={onNext}
                 disabled={!hasNext}
                 data-testid="button-next"
+                className="h-11 w-11 sm:h-9 sm:w-9"
               >
-                <SkipForward className="h-5 w-5" />
+                <SkipForward className="h-5 w-5 sm:h-5 sm:w-5" />
               </Button>
 
               <Button
@@ -711,25 +714,25 @@ export function AudioPlayer({
                 onClick={toggleLoop}
                 disabled={!isSongReady}
                 data-testid="button-loop"
-                className={loopMode !== 'off' ? 'text-primary' : ''}
+                className={`h-11 w-11 sm:h-9 sm:w-9 ${loopMode !== 'off' ? 'text-primary' : ''}`}
               >
                 {loopMode === 'song' ? (
-                  <Repeat1 className="h-5 w-5" />
+                  <Repeat1 className="h-5 w-5 sm:h-5 sm:w-5" />
                 ) : (
-                  <Repeat className="h-5 w-5" />
+                  <Repeat className="h-5 w-5 sm:h-5 sm:w-5" />
                 )}
               </Button>
             </div>
 
             {/* Volume Control */}
-            <div className="flex items-center gap-2 w-32">
-              <Volume2 className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 justify-center sm:w-32">
+              <Volume2 className="h-5 w-5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
               <Slider
                 value={[volume * 100]}
                 max={100}
                 step={1}
                 onValueChange={(value) => setVolume(value[0] / 100)}
-                className="w-full"
+                className="w-full max-w-[200px] sm:max-w-none touch-target"
                 data-testid="slider-volume"
               />
             </div>

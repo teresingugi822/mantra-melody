@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { GenreSelector } from "@/components/genre-selector";
 import { VoiceSelector } from "@/components/voice-selector";
-import { Loader2, Music, ArrowLeft, Sparkles, Sun, Moon, Zap } from "lucide-react";
+import { Loader2, Music, ArrowLeft, Sparkles, Sun, Moon, Zap, Headphones } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -92,48 +92,52 @@ export default function Create() {
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="gap-2"
+            className="gap-2 h-11 sm:h-auto"
+            aria-label="Back to Home"
             data-testid="button-back-home"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Home
+            <ArrowLeft className="h-5 w-5" />
+            <span className="hidden sm:inline">Back to Home</span>
           </Button>
           <div className="flex items-center gap-2">
             <Music className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold font-serif">Mantra Music</span>
+            <span className="text-lg sm:text-xl font-bold font-serif">Mantra Music</span>
           </div>
           <Button
             variant="outline"
             onClick={() => navigate("/library")}
+            className="h-11 sm:h-auto"
+            aria-label="View Library"
             data-testid="button-view-library"
           >
-            View Library
+            <Headphones className="h-5 w-5 sm:mr-2" />
+            <span className="hidden sm:inline">View Library</span>
           </Button>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="container max-w-4xl px-4 md:px-6 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold font-serif mb-4" data-testid="text-page-title">
+      <div className="container max-w-4xl px-4 md:px-6 py-6 sm:py-12">
+        <div className="text-center mb-6 sm:mb-12">
+          <h1 className="text-2xl sm:text-4xl font-bold font-serif mb-3 sm:mb-4" data-testid="text-page-title">
             Create Your Mantra Song
           </h1>
-          <p className="text-lg text-muted-foreground" data-testid="text-page-subtitle">
+          <p className="text-base sm:text-lg text-muted-foreground" data-testid="text-page-subtitle">
             Write your goals, affirmations, or daily mantras and transform them into personalized music
           </p>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Sparkles className="h-5 w-5 text-primary" />
               Write Your Mantra
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm">
               Be authentic and personal. Express what you want to achieve, overcome, or become.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 p-4 sm:p-6">
             {/* Mantra Input */}
             <div className="space-y-2">
               <label htmlFor="mantra" className="text-sm font-medium">
@@ -144,7 +148,7 @@ export default function Create() {
                 placeholder="I am strong, capable, and ready to embrace new opportunities. Each day brings me closer to my goals..."
                 value={mantraText}
                 onChange={(e) => setMantraText(e.target.value)}
-                className="min-h-[200px] resize-none text-base"
+                className="min-h-[200px] sm:min-h-[200px] resize-none text-base"
                 data-testid="textarea-mantra"
               />
               <p className="text-xs text-muted-foreground text-right" data-testid="text-character-count">
@@ -187,35 +191,35 @@ export default function Create() {
             {/* Playlist Assignment (Optional) */}
             <div className="space-y-3">
               <label className="text-sm font-medium">Add to Playlist (Optional)</label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <Button
                   type="button"
                   variant={selectedPlaylist === "morning" ? "default" : "outline"}
-                  className="h-auto py-3 flex flex-col items-center gap-2 hover-elevate"
+                  className="h-auto py-4 sm:py-3 flex flex-col items-center gap-2 hover-elevate touch-target"
                   onClick={() => setSelectedPlaylist(selectedPlaylist === "morning" ? null : "morning")}
                   data-testid="button-playlist-morning"
                 >
-                  <Sun className="h-6 w-6" />
+                  <Sun className="h-6 w-6 sm:h-6 sm:w-6" />
                   <span className="text-xs">Morning</span>
                 </Button>
                 <Button
                   type="button"
                   variant={selectedPlaylist === "daytime" ? "default" : "outline"}
-                  className="h-auto py-3 flex flex-col items-center gap-2 hover-elevate"
+                  className="h-auto py-4 sm:py-3 flex flex-col items-center gap-2 hover-elevate touch-target"
                   onClick={() => setSelectedPlaylist(selectedPlaylist === "daytime" ? null : "daytime")}
                   data-testid="button-playlist-daytime"
                 >
-                  <Zap className="h-6 w-6" />
+                  <Zap className="h-6 w-6 sm:h-6 sm:w-6" />
                   <span className="text-xs">Daytime</span>
                 </Button>
                 <Button
                   type="button"
                   variant={selectedPlaylist === "bedtime" ? "default" : "outline"}
-                  className="h-auto py-3 flex flex-col items-center gap-2 hover-elevate"
+                  className="h-auto py-4 sm:py-3 flex flex-col items-center gap-2 hover-elevate touch-target"
                   onClick={() => setSelectedPlaylist(selectedPlaylist === "bedtime" ? null : "bedtime")}
                   data-testid="button-playlist-bedtime"
                 >
-                  <Moon className="h-6 w-6" />
+                  <Moon className="h-6 w-6 sm:h-6 sm:w-6" />
                   <span className="text-xs">Bedtime</span>
                 </Button>
               </div>
