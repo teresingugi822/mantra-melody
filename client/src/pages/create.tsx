@@ -5,12 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { GenreSelector } from "@/components/genre-selector";
+import { RhythmSelector } from "@/components/rhythm-selector";
 import { VoiceSelector } from "@/components/voice-selector";
 import { Loader2, Music, ArrowLeft, Sparkles, Sun, Moon, Zap, Headphones } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Genre, VocalGender, VocalStyle } from "@shared/schema";
+import type { Genre, VocalGender, VocalStyle, Rhythm, RHYTHM_OPTIONS } from "@shared/schema";
 
 type PlaylistType = "morning" | "daytime" | "bedtime" | null;
 
@@ -19,15 +20,30 @@ export default function Create() {
   const { toast } = useToast();
   const [mantraText, setMantraText] = useState("");
   const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
+  const [selectedRhythm, setSelectedRhythm] = useState<Rhythm | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<PlaylistType>(null);
   const [selectedVocalGender, setSelectedVocalGender] = useState<VocalGender | null>(null);
   const [selectedVocalStyle, setSelectedVocalStyle] = useState<VocalStyle | null>(null);
   const [useExactLyrics, setUseExactLyrics] = useState(false);
 
+  // Auto-select first rhythm when genre changes
+  const handleGenreChange = (genre: Genre | null) => {
+    setSelectedGenre(genre);
+    if (genre) {
+      // Import RHYTHM_OPTIONS inline to avoid circular dependency
+      const { RHYTHM_OPTIONS } = require("@shared/schema");
+      const firstRhythm = RHYTHM_OPTIONS[genre][0].value as Rhythm;
+      setSelectedRhythm(firstRhythm);
+    } else {
+      setSelectedRhythm(null);
+    }
+  };
+
   const generateSongMutation = useMutation({
     mutationFn: async (data: { 
       text: string; 
-      genre: Genre; 
+      genre: Genre;
+      rhythm: Rhythm;
       playlistType?: string;
       vocalGender?: VocalGender;
       vocalStyle?: VocalStyle;
@@ -74,9 +90,19 @@ export default function Create() {
       return;
     }
 
+    if (!selectedRhythm) {
+      toast({
+        title: "Rhythm Required",
+        description: "Please select a rhythm for your song.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     generateSongMutation.mutate({
       text: mantraText,
       genre: selectedGenre,
+      rhythm: selectedRhythm,
       playlistType: selectedPlaylist || undefined,
       vocalGender: selectedVocalGender || undefined,
       vocalStyle: selectedVocalStyle || undefined,
@@ -159,8 +185,17 @@ export default function Create() {
             {/* Genre Selector */}
             <GenreSelector
               value={selectedGenre}
-              onChange={setSelectedGenre}
+              onChange={handleGenreChange}
             />
+
+            {/* Rhythm Selector - shown after genre selection */}
+            {selectedGenre && (
+              <RhythmSelector
+                genre={selectedGenre}
+                selectedRhythm={selectedRhythm}
+                onSelectRhythm={setSelectedRhythm}
+              />
+            )}
 
             {/* Voice Selection */}
             <VoiceSelector

@@ -139,13 +139,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bodySchema = z.object({
         text: z.string().min(1),
         genre: z.enum(["soul", "blues", "hip-hop", "reggae", "pop", "acoustic"]),
+        rhythm: z.string().min(1),
         playlistType: z.enum(["morning", "daytime", "bedtime"]).optional(),
         vocalGender: z.enum(["male", "female"]).optional(),
         vocalStyle: z.enum(["warm", "powerful", "soft", "energetic", "soulful", "gritty"]).optional(),
         useExactLyrics: z.boolean().optional(),
       });
 
-      const { text, genre, playlistType, vocalGender, vocalStyle, useExactLyrics } = bodySchema.parse(req.body);
+      const { text, genre, rhythm, playlistType, vocalGender, vocalStyle, useExactLyrics } = bodySchema.parse(req.body);
 
       // 1. Create mantra record
       const mantra = await storage.createMantra({ text }, userId);
@@ -161,6 +162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mantraId: mantra.id,
         title,
         genre,
+        rhythm: rhythm,
         lyrics,
         status: "generating",
         playlistType: playlistType || null,
@@ -173,7 +175,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { audioUrl, status } = await generateMusic(
           lyrics, 
-          genre, 
+          genre,
+          rhythm,
           { gender: vocalGender, style: vocalStyle },
           title
         );

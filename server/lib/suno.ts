@@ -74,6 +74,7 @@ function cleanLyricsForSinging(lyrics: string): string {
 export async function generateMusic(
   lyrics: string,
   genre: string,
+  rhythm: string,
   voiceOptions?: VoiceOptions,
   title?: string
 ): Promise<{ audioUrl: string; status: string }> {
@@ -85,10 +86,10 @@ export async function generateMusic(
   }
 
   try {
-    // Build style description with vocal characteristics
-    let styleDescription = genre;
+    // Build style description with rhythm and vocal characteristics
+    let styleDescription = `${genre}, ${rhythm}`;
     if (voiceOptions?.style) {
-      styleDescription = `${genre}, ${voiceOptions.style}`;
+      styleDescription = `${genre}, ${rhythm}, ${voiceOptions.style}`;
     }
 
     // Map gender to API format (m/f)
