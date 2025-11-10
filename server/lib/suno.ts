@@ -45,6 +45,32 @@ export interface VoiceOptions {
   style?: "warm" | "powerful" | "soft" | "energetic" | "soulful" | "gritty";
 }
 
+/**
+ * Removes structural markers from lyrics that shouldn't be sung
+ * Strips markers like [Verse], [Chorus], [Bridge], etc.
+ */
+function cleanLyricsForSinging(lyrics: string): string {
+  // Remove common structural markers (case-insensitive)
+  // Matches: [Verse], [Verse 1], [Chorus], [Bridge], [Intro], [Outro], etc.
+  const cleanedLyrics = lyrics
+    .replace(/\[Verse.*?\]/gi, '')
+    .replace(/\[Chorus.*?\]/gi, '')
+    .replace(/\[Bridge.*?\]/gi, '')
+    .replace(/\[Intro.*?\]/gi, '')
+    .replace(/\[Outro.*?\]/gi, '')
+    .replace(/\[Pre-Chorus.*?\]/gi, '')
+    .replace(/\[Hook.*?\]/gi, '')
+    .replace(/\[Refrain.*?\]/gi, '')
+    // Remove any other bracketed markers
+    .replace(/\[.*?\]/g, '')
+    // Clean up multiple consecutive blank lines (more than 2 newlines)
+    .replace(/\n{3,}/g, '\n\n')
+    // Trim whitespace
+    .trim();
+
+  return cleanedLyrics;
+}
+
 export async function generateMusic(
   lyrics: string,
   genre: string,
@@ -72,8 +98,12 @@ export async function generateMusic(
 
     console.log(`Generating music - Style: ${styleDescription}, Gender: ${vocalGender || 'unspecified'}, Lyrics length: ${lyrics.length} chars`);
 
+    // Clean lyrics: remove structural markers like [Verse], [Chorus] that shouldn't be sung
+    const cleanedLyrics = cleanLyricsForSinging(lyrics);
+    console.log(`Cleaned lyrics length: ${cleanedLyrics.length} chars (removed ${lyrics.length - cleanedLyrics.length} chars of markers)`);
+
     const sunoPayload = {
-      prompt: lyrics, // In custom mode, prompt = the lyrics to sing
+      prompt: cleanedLyrics, // In custom mode, prompt = the lyrics to sing (cleaned of markers)
       style: styleDescription, // Genre/style description
       title: title || "Mantra Song",
       customMode: true,
@@ -83,7 +113,7 @@ export async function generateMusic(
       callBackUrl: `${process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 'http://localhost:5000'}/api/suno/callback`
     };
 
-    console.log(`Suno API payload - Lyrics to sing: ${lyrics.substring(0, 100)}..., Style: ${styleDescription}, Instrumental: false`);
+    console.log(`Suno API payload - Lyrics to sing: ${cleanedLyrics.substring(0, 100)}..., Style: ${styleDescription}, Instrumental: false`);
 
     // Call SunoAPI.org generate endpoint
     const generateResponse = await fetch("https://api.sunoapi.org/api/v1/generate", {
