@@ -11,7 +11,8 @@ import { Loader2, Music, ArrowLeft, Sparkles, Sun, Moon, Zap, Headphones } from 
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Genre, VocalGender, VocalStyle, Rhythm, RHYTHM_OPTIONS } from "@shared/schema";
+import type { Genre, VocalGender, VocalStyle, Rhythm } from "@shared/schema";
+import { RHYTHM_OPTIONS } from "@shared/schema";
 
 type PlaylistType = "morning" | "daytime" | "bedtime" | null;
 
@@ -30,8 +31,6 @@ export default function Create() {
   const handleGenreChange = (genre: Genre | null) => {
     setSelectedGenre(genre);
     if (genre) {
-      // Import RHYTHM_OPTIONS inline to avoid circular dependency
-      const { RHYTHM_OPTIONS } = require("@shared/schema");
       const firstRhythm = RHYTHM_OPTIONS[genre][0].value as Rhythm;
       setSelectedRhythm(firstRhythm);
     } else {

@@ -26,9 +26,13 @@ export function LyricsDisplay({
   useEffect(() => {
     if (!duration || duration === 0 || lines.length === 0) return;
 
+    // Lead time: show lyrics 2 seconds before they're sung
+    const LEAD_TIME_SECONDS = 2;
+    const adjustedTime = currentTime + LEAD_TIME_SECONDS;
+
     // Simple linear progression: divide total time by number of lines
     const timePerLine = duration / lines.length;
-    const currentLineIndex = Math.floor(currentTime / timePerLine);
+    const currentLineIndex = Math.floor(adjustedTime / timePerLine);
     const newIndex = Math.min(currentLineIndex, lines.length - 1);
     
     setHighlightedIndex(newIndex);
@@ -70,6 +74,10 @@ export function LyricsDisplay({
           const isHighlighted = index === highlightedIndex;
           const isPast = index < highlightedIndex;
           const isFuture = index > highlightedIndex;
+          
+          // Show next 2 upcoming lines prominently
+          const isUpcomingSoon = index === highlightedIndex + 1;
+          const isUpcomingNext = index === highlightedIndex + 2;
 
           return (
             <div
@@ -77,17 +85,25 @@ export function LyricsDisplay({
               data-line-index={index}
               data-testid={`lyrics-line-${index}`}
               className={`
-                text-center transition-all duration-500 ease-out py-3 px-6 rounded-lg
+                text-center transition-all duration-700 ease-out py-3 px-6 rounded-lg
                 font-serif leading-relaxed
                 ${isHighlighted 
-                  ? 'text-primary font-bold text-3xl md:text-4xl scale-110 opacity-100' 
-                  : isPast
-                    ? 'text-muted-foreground/60 text-xl md:text-2xl scale-95 opacity-70'
-                    : 'text-muted-foreground/40 text-xl md:text-2xl scale-90 opacity-50'
+                  ? 'text-primary font-bold text-3xl md:text-4xl lg:text-5xl scale-110 opacity-100' 
+                  : isUpcomingSoon
+                    ? 'text-foreground font-semibold text-2xl md:text-3xl scale-105 opacity-90'
+                    : isUpcomingNext
+                      ? 'text-foreground/80 text-xl md:text-2xl scale-100 opacity-75'
+                      : isPast
+                        ? 'text-muted-foreground/50 text-lg md:text-xl scale-90 opacity-60'
+                        : 'text-muted-foreground/30 text-base md:text-lg scale-85 opacity-40'
                 }
               `}
               style={{
-                textShadow: isHighlighted ? '0 0 20px rgba(139, 92, 246, 0.3)' : 'none',
+                textShadow: isHighlighted 
+                  ? '0 0 30px rgba(139, 92, 246, 0.5)' 
+                  : isUpcomingSoon 
+                    ? '0 0 15px rgba(139, 92, 246, 0.2)'
+                    : 'none',
               }}
             >
               {line}

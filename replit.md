@@ -8,6 +8,19 @@ Mantra Music is a web application that transforms personal mantras, affirmations
 
 ## Recent Changes
 
+### Enhanced Lyrics Sync (November 2025)
+Implemented advanced karaoke-style lyrics display with preview timing and 5-tier visual hierarchy:
+- **2-Second Lead Time**: Lyrics appear 2 seconds before they're sung, giving users time to read ahead
+- **5-Tier Visual Hierarchy**:
+  1. Currently singing: Extra large (3xl-5xl), bold, primary color, scale-110, 100% opacity, glow effect
+  2. Next line (upcoming soon): Large (2xl-3xl), semibold, foreground color, scale-105, 90% opacity, subtle glow
+  3. Line after next: Medium (xl-2xl), normal weight, 75% opacity
+  4. Past lines: Small (lg-xl), muted, 60% opacity
+  5. Far future lines: Very small (base-lg), very muted, 40% opacity
+- **Smooth Transitions**: 700ms duration with ease-out timing for scale, opacity, and color changes
+- **Auto-Scroll**: Keeps highlighted line centered during playback with smooth scrolling behavior
+- **Responsive Design**: Text sizes scale across mobile/tablet/desktop breakpoints
+
 ### Mobile Optimization (November 2025)
 Comprehensive mobile-friendly improvements ensuring production-ready experience on smartphones:
 - **Touch Targets**: All interactive controls meet 44x44px minimum (WCAG 2.5.5 compliance)
