@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Pause, SkipBack, SkipForward, Volume2, Music2, X, Download, Share2, FileAudio, Video, Repeat, Repeat1 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { LyricsDisplay } from "@/components/lyrics-display";
+import { WaveformBars, WaveformPattern } from "@/components/musical-elements";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -533,18 +534,33 @@ export function AudioPlayer({
   const isGenerating = song.status === 'generating';
   const hasError = song.status === 'error';
 
+  // Get genre-specific gradient
+  const genreGradients: Record<string, string> = {
+    soul: "from-purple-500/20 via-indigo-500/20 to-purple-500/20",
+    blues: "from-indigo-500/20 via-blue-600/20 to-indigo-500/20",
+    "hip-hop": "from-orange-500/20 via-red-500/20 to-orange-500/20",
+    reggae: "from-green-500/20 via-yellow-500/20 to-green-500/20",
+    pop: "from-pink-500/20 via-blue-500/20 to-pink-500/20",
+    acoustic: "from-amber-600/20 via-orange-500/20 to-amber-600/20",
+  };
+  const genreGradient = genreGradients[song.genre] || "from-primary/20 via-purple-500/20 to-primary/20";
+
   return (
     <div className="w-full space-y-4">
       {/* Song Info Card */}
-      <Card data-testid="audio-player">
-        <CardContent className="p-4 sm:p-6">
+      <Card className={`relative overflow-hidden bg-gradient-to-r ${genreGradient} musical-glow`} data-testid="audio-player">
+        <WaveformPattern className="opacity-5" />
+        <CardContent className="relative p-4 sm:p-6">
           {/* Song Info */}
           <div className="mb-4">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-2 mb-2">
               <div className="flex-1">
-                <h3 className="font-bold text-base sm:text-lg mb-2" data-testid="text-song-title">{song.title}</h3>
+                <div className="flex items-center gap-3 mb-2">
+                  <WaveformBars count={5} className="h-6" animated={isPlaying} />
+                </div>
+                <h3 className="font-bold font-serif text-base sm:text-lg mb-2" data-testid="text-song-title">{song.title}</h3>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="secondary" data-testid="badge-genre">{song.genre}</Badge>
+                  <Badge variant="secondary" className="font-semibold" data-testid="badge-genre">{song.genre}</Badge>
                   {isGenerating && (
                     <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400" data-testid="badge-generating">
                       Generating...
