@@ -2,12 +2,12 @@
 
 ## Design Approach
 
-**Reference-Based Approach** drawing from wellness and music streaming leaders:
-- **Calm/Headspace**: Soothing gradients, uplifting imagery, mindful spacing
-- **Spotify**: Playlist management, audio controls, library organization
-- **Notion**: Clean text input, distraction-free writing experience
+**Reference-Based Approach** blending music streaming energy with wellness serenity:
+- **Spotify**: Dynamic playlists, vibrant gradients, energetic UI, album art focus
+- **Calm/Headspace**: Soothing transitions, mindful spacing, uplifting imagery
+- **SoundCloud**: Waveform visualizations, audio-first design, creative community feel
 
-Core principle: Create an emotionally uplifting, transformation-focused experience that makes users feel empowered and motivated.
+**Core Principle:** Create a rhythmic, emotionally charged experience that feels like music in motion—vibrant, empowering, and transformative.
 
 ---
 
@@ -15,14 +15,14 @@ Core principle: Create an emotionally uplifting, transformation-focused experien
 
 **Font Stack:**
 - Primary: Inter (Google Fonts) - Clean, modern sans-serif for UI and body text
-- Accent: Playfair Display (Google Fonts) - Elegant serif for mantras, quotes, and inspirational headings
+- Accent: Playfair Display (Google Fonts) - Elegant serif for mantras, lyrics, and inspirational moments
 
 **Hierarchy:**
-- Hero Headlines: 3xl to 5xl (Playfair Display, font-semibold)
-- Section Titles: 2xl to 3xl (Inter, font-bold)
-- Mantra Text: xl to 2xl (Playfair Display, font-medium, italic for emphasis)
+- Hero Headlines: 4xl to 6xl (Playfair Display, font-bold, italic for emphasis)
+- Section Titles: 2xl to 4xl (Inter, font-bold)
+- Mantra/Lyric Text: xl to 3xl (Playfair Display, font-semibold, italic)
 - Body/UI: base to lg (Inter, font-normal)
-- Audio Player Metadata: sm to base (Inter, font-medium)
+- Metadata: sm to base (Inter, font-medium)
 
 ---
 
@@ -31,143 +31,184 @@ Core principle: Create an emotionally uplifting, transformation-focused experien
 **Spacing Primitives:** Tailwind units of 2, 4, 6, 8, 12, 16, 20, 24
 
 **Vertical Rhythm:**
-- Section padding: py-16 (mobile), py-24 (desktop)
-- Component spacing: space-y-8 to space-y-12
-- Card padding: p-6 to p-8
+- Section padding: py-16 (mobile), py-24 to py-32 (desktop)
+- Component spacing: space-y-8 to space-y-16
+- Card padding: p-6 to p-10
 
 **Container Strategy:**
-- Full-width hero sections with max-w-7xl inner content
-- App interface: max-w-6xl centered container
-- Mantra writing area: max-w-3xl (focused, distraction-free)
-- Playlist cards: Grid system with gap-6
+- Hero sections: Full-width with max-w-7xl inner content
+- App workspace: max-w-6xl centered
+- Mantra composer: max-w-4xl (focused writing zone)
+- Grid layouts: gap-6 to gap-8
 
 ---
 
 ## Component Library
 
 ### Navigation
-- Sticky header with glass-morphism effect (backdrop-blur)
-- Logo + primary CTA ("Start Creating" button)
-- Simple navigation: How It Works, Features, Playlists, Sign In
+Sticky header with glass-morphism backdrop-blur effect, gradient border-bottom. Logo with musical note accent, primary CTA "Start Creating", navigation links (How It Works, Explore Genres, My Library, Sign In). Include subtle waveform pattern in background.
 
 ### Hero Section
-**Large inspirational image:** Dawn/sunrise scene, person in peaceful meditation, or abstract uplifting gradient
-- Overlay with backdrop-blur for text readability
-- Headline: "Turn Your Goals into Songs that Move You"
-- Subheadline describing transformation concept
-- Primary CTA: "Create Your First Mantra Song" (prominent, blurred background)
-- Secondary text: "Join 10,000+ people transforming their mindset through music"
+**Full-width (80-90vh) hero with layered visual depth:**
+- Large hero image: Person with headphones in golden hour light, eyes closed in peaceful moment, or vibrant concert/festival crowd with raised hands
+- Animated waveform overlay pulsing subtly across the image
+- Gradient overlay creating depth (genre-inspired: purple-to-blue or orange-to-pink)
+- Headline: "Transform Your Words into Music That Moves You" (Playfair Display, large, centered)
+- Subheadline: "AI-powered songs from your mantras. Choose your vibe. Feel the rhythm of change."
+- Primary CTA: Large button with blurred background, musical note icon
+- Trust indicator: "10,000+ songs created • 6 musical genres • Instant generation"
+- Floating vinyl record graphic in corner with subtle rotation animation
 
-### Mantra Writing Interface
-- Large, focused textarea with subtle border
-- Floating placeholder: "Write your goal, affirmation, or daily mantra..."
-- Character count indicator (subtle, bottom-right)
-- Genre selector: Icon-based pill buttons for 6 genres (soul, blues, hip-hop, reggae, pop, acoustic)
-- Generate button: Primary, prominent placement
+### Mantra Composer Interface
+Large, centered workspace with musical ambiance:
+- Generous textarea (min-h-64) with animated waveform border that pulses on focus
+- Floating label: "Write your mantra, goal, or daily affirmation..."
+- Character counter with musical notation (e.g., "♪ 150 characters")
+- Genre selector grid (3x2 on desktop, 2x3 on mobile) with visual identity:
+  - **Soul**: Purple gradient card, vinyl icon
+  - **Blues**: Indigo gradient, saxophone silhouette
+  - **Hip-Hop**: Orange-red gradient, turntable icon
+  - **Reggae**: Green-yellow gradient, palm tree icon
+  - **Pop**: Bright pink-blue gradient, microphone icon
+  - **Acoustic**: Warm brown-amber gradient, guitar icon
+- Each genre card shows animated waveform pattern on hover
+- Generate button: Prominent, pulsing subtle glow effect, "Create My Song" text
 
 ### Audio Player Component
-- Rounded card with soft shadow
-- Album art placeholder (abstract gradient visualization)
-- Track title (user's mantra theme)
-- Genre tag badge
-- Playback controls: Previous, Play/Pause (large, centered), Next, Loop, Share
-- Progress bar with time indicators
-- Waveform visualization (subtle, decorative)
+Premium music player card with rich visual feedback:
+- Rounded-xl card with genre-specific gradient background
+- Large square album art area with animated waveform visualization
+- Track title in Playfair Display (user's mantra theme)
+- Genre badge with icon
+- Professional controls: Skip back, Play/Pause (large, glowing when active), Skip forward, Loop toggle, Download, Share
+- Progress bar with time stamps, waveform preview along the bar
+- Volume slider with icon
+- Lyrics display toggle showing scrolling mantra text
 
-### Playlist Cards
-**Three curated playlists:**
-1. Morning Motivation (sunrise imagery)
-2. Daytime Energy (vibrant, active imagery)
-3. Bedtime Calm (peaceful night sky/moon imagery)
+### Genre Showcase Section
+**6 genre cards in 2-column grid (mobile) to 3-column (desktop):**
+Each card features:
+- Genre-specific gradient background with pattern overlay
+- Large genre icon (vinyl, guitar, microphone, etc.)
+- Genre name (text-2xl, font-bold)
+- Mood tags ("Soulful • Uplifting • Smooth")
+- Sample waveform visualization
+- "Explore" button with blurred background
+- Hover effect: Card lifts, waveform animates
 
-Card structure:
-- Image backdrop (rounded-lg)
-- Gradient overlay for text contrast
-- Playlist name (text-xl, font-bold)
-- Track count ("12 mantras")
-- Play button (blurred background, centered)
+### Playlist Discovery Section
+**Three time-of-day playlists with rich imagery:**
 
-### Song Library View
-- Grid layout: 2 columns (mobile), 3-4 columns (desktop)
-- Saved song cards showing mantra preview, genre, date created
-- Filter/sort options: By genre, by playlist, by date
-- Search bar for finding specific mantras
+**Morning Motivation:**
+- Image: Sunrise over mountains, person doing yoga silhouette, golden hour glow
+- Gradient overlay: Orange to pink
+- Playlist name + track count ("15 mantras")
+- Large play button with blurred background, centered
+- Featured track previews (3 small waveforms)
 
-### Feature Showcase Section
-**3-column grid (stacks on mobile):**
-1. Write Your Mantras (icon: pen/paper)
-2. Choose Your Genre (icon: music notes)
-3. Listen & Transform (icon: headphones)
+**Daytime Energy:**
+- Image: Urban scene, active person, vibrant street art, or workout moment
+- Gradient overlay: Yellow to red
+- Same structure as Morning
 
-Each with icon, heading, description paragraph
+**Bedtime Calm:**
+- Image: Peaceful night sky, stars, moonlight on water, or meditation space
+- Gradient overlay: Deep blue to purple
+- Same structure as Morning
+
+### My Library View
+Grid layout showing user's created songs:
+- 2 columns (mobile), 3-4 columns (desktop)
+- Each card displays:
+  - Animated waveform thumbnail (genre-colored)
+  - Mantra preview (first 40 characters in Playfair italic)
+  - Genre badge and timestamp
+  - Quick play button overlay
+  - Edit/delete icons on hover
+- Filter bar: Sort by genre, date, favorites
+- Search input with musical note icon
+
+### Feature Explanation Section
+**3-column grid (stacks mobile):**
+1. **Write Your Mantra** - Icon: Pen with musical staff, description of distraction-free writing
+2. **Choose Your Vibe** - Icon: Genre selector visualization, description of 6 musical styles
+3. **Listen & Transform** - Icon: Headphones with soundwave, description of instant playback
 
 ### Social Proof Section
-- Testimonial cards in 2-column layout
-- User quote in Playfair Display italic
-- User name and transformation story length indicator
-- Subtle card elevation with hover lift effect
+**2-column testimonial grid (single column mobile):**
+- User quotes in Playfair italic with oversized quotation marks
+- User name, transformation timeframe ("2 weeks of daily mantras")
+- Small waveform accent below each quote
+- Subtle card hover lift effect
+
+### Footer
+Multi-column layout with:
+- Newsletter signup: "Get weekly mantra inspiration" with email input
+- Quick links (navigation, support, privacy)
+- Social icons with musical note motifs
+- Genre tags as quick links
+- Trust badges: "AI-Powered • Instant Generation • Unlimited Songs"
 
 ---
 
 ## Images
 
-**Hero Section:** Large, full-width background image
-- Type: Sunrise/peaceful nature scene, person meditating at dawn, or abstract uplifting gradient
-- Treatment: Subtle overlay with backdrop-blur for text
-- Placement: Full viewport height (80vh), centered content
+**Hero Section:** Full-width, high-impact image (80-90vh)
+- Person with headphones in meditative moment during golden hour
+- Or: Peaceful concert crowd with raised hands, warm lighting
+- Treatment: Genre-gradient overlay (purple-blue or orange-pink), subtle waveform animation layer
 
-**Playlist Cards:** Medium-sized card backgrounds
-- Morning: Sunrise, golden hour, energizing scenes
-- Daytime: Vibrant, active, colorful environments
-- Bedtime: Peaceful night sky, moon, calming blue tones
+**Playlist Cards:** Medium rectangular images with gradient overlays
+- Morning: Sunrise yoga, golden hour meditation, mountain peaks
+- Daytime: Urban energy, workout scenes, vibrant street moments
+- Bedtime: Night sky, starfield, moonlit water, peaceful bedroom
 
-**Feature Icons:** Use Heroicons via CDN
-- Pen tool, musical note, headphones, sparkles, heart, bookmark
+**Genre Cards:** Abstract gradient backgrounds with icon overlays (no photos needed)
 
-**App Screenshots:** Optional showcase section
-- Desktop: Mantra writing interface in action
-- Mobile: Audio player on phone mockup
+**Icons:** Heroicons via CDN - musical-note, microphone, headphones, sparkles, heart, bookmark, plus custom music icons (vinyl, guitar, waveform)
+
+---
+
+## Musical Visual Motifs
+
+Integrate throughout the design:
+- **Waveform patterns:** As borders, backgrounds, and loading states
+- **Vinyl records:** Rotating accent graphics, genre identifiers
+- **Music notes:** Floating decorative elements, bullet points, icons
+- **Rhythm patterns:** Dotted patterns suggesting beats/bars
+- **Audio bars:** Equalizer-style visualizations in headers and cards
 
 ---
 
 ## Animations
 
-**Minimal, purposeful animations:**
-- Button hover: subtle scale transform (scale-105)
-- Card hover: gentle lift with shadow increase
-- Audio player: Subtle pulse on play button when active
-- Genre selector: Smooth selection state transition
-- Page transitions: Fade-in content sections on scroll (use Intersection Observer)
-
-**Avoid:** Excessive parallax, autoplay carousels, distracting background animations
+**Strategic, music-inspired motion:**
+- Waveform pulse on audio playback
+- Vinyl record subtle rotation
+- Genre card waveform animation on hover
+- Button scale-105 on hover
+- Card gentle lift with shadow increase
+- Progress bar smooth fill
+- Page sections fade-in on scroll with rhythm (staggered timing)
 
 ---
 
 ## Accessibility
 
-- Minimum touch target: 44px × 44px for all interactive elements
-- Form labels visible and associated with inputs
-- Audio player controls keyboard navigable
-- Focus states: 2px ring with offset
-- ARIA labels on icon-only buttons
-- Color contrast minimum 4.5:1 for all text
+- 44px minimum touch targets
+- Visible form labels
+- Keyboard-navigable audio controls with custom focus states
+- ARIA labels on all icon buttons
+- 4.5:1 color contrast minimum
+- Waveform patterns remain decorative, not essential information
 
 ---
 
 ## Mobile Considerations
 
-- Mantra textarea: Full-width, comfortable touch size
-- Genre selector: Horizontal scroll on mobile, grid on desktop
-- Audio player: Sticky bottom position during playback
-- Playlist cards: Single column stack on mobile
-- Navigation: Hamburger menu on mobile with slide-in drawer
-
----
-
-## Key Design Principles
-
-1. **Emotionally Uplifting:** Use warm gradients, inspiring imagery, encouraging language
-2. **Focused Creation:** Distraction-free writing experience with ample whitespace
-3. **Smooth Audio Experience:** Professional music player controls, clear progress indication
-4. **Personal Journey:** Organize by time of day (morning/day/night) reflecting daily rhythm
-5. **Effortless Sharing:** Easy save/replay with optional social sharing
+- Sticky audio player at bottom during playback
+- Genre selector: 2-column grid on mobile
+- Hamburger menu with slide-in drawer
+- Full-width mantra composer
+- Single-column playlist and library cards
+- Touch-optimized controls (larger tap areas)
