@@ -7,10 +7,11 @@ import { Switch } from "@/components/ui/switch";
 import { GenreSelector } from "@/components/genre-selector";
 import { RhythmSelector } from "@/components/rhythm-selector";
 import { VoiceSelector } from "@/components/voice-selector";
-import { Loader2, Music, ArrowLeft, Sparkles, Sun, Moon, Zap, Headphones } from "lucide-react";
+import { Loader2, Music, ArrowLeft, Sparkles, Sun, Moon, Zap, Headphones, Disc3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { WaveformBars, VinylRecord, WaveformPattern } from "@/components/musical-elements";
 import type { Genre, VocalGender, VocalStyle, Rhythm } from "@shared/schema";
 import { RHYTHM_OPTIONS } from "@shared/schema";
 
@@ -113,7 +114,8 @@ export default function Create() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        <WaveformPattern className="opacity-20" />
+        <div className="container relative flex h-16 items-center justify-between px-4 md:px-6">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
@@ -125,7 +127,7 @@ export default function Create() {
             <span className="hidden sm:inline">Back to Home</span>
           </Button>
           <div className="flex items-center gap-2">
-            <Music className="h-6 w-6 text-primary" />
+            <VinylRecord size="sm" spinning className="text-primary" />
             <span className="text-lg sm:text-xl font-bold font-serif">Mantra Music</span>
           </div>
           <Button
@@ -144,17 +146,21 @@ export default function Create() {
       {/* Main Content */}
       <div className="container max-w-4xl px-4 md:px-6 py-6 sm:py-12">
         <div className="text-center mb-6 sm:mb-12">
-          <h1 className="text-2xl sm:text-4xl font-bold font-serif mb-3 sm:mb-4" data-testid="text-page-title">
+          <div className="flex justify-center mb-4">
+            <WaveformBars count={7} className="h-12" animated />
+          </div>
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold font-serif mb-3 sm:mb-4 bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent" data-testid="text-page-title">
             Create Your Mantra Song
           </h1>
-          <p className="text-base sm:text-lg text-muted-foreground" data-testid="text-page-subtitle">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed" data-testid="text-page-subtitle">
             Write your goals, affirmations, or daily mantras and transform them into personalized music
           </p>
         </div>
 
-        <Card>
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+        <Card className="relative overflow-hidden musical-glow">
+          <WaveformPattern className="opacity-5" />
+          <CardHeader className="relative p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-serif">
               <Sparkles className="h-5 w-5 text-primary" />
               Write Your Mantra
             </CardTitle>
@@ -162,7 +168,7 @@ export default function Create() {
               Be authentic and personal. Express what you want to achieve, overcome, or become.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6 p-4 sm:p-6">
+          <CardContent className="relative space-y-6 p-4 sm:p-6">
             {/* Mantra Input */}
             <div className="space-y-2">
               <label htmlFor="mantra" className="text-sm font-medium">
@@ -229,7 +235,7 @@ export default function Create() {
                 <Button
                   type="button"
                   variant={selectedPlaylist === "morning" ? "default" : "outline"}
-                  className="h-auto py-4 sm:py-3 flex flex-col items-center gap-2 hover-elevate touch-target"
+                  className={`h-auto py-4 sm:py-3 flex flex-col items-center gap-2 ${selectedPlaylist === "morning" ? "musical-glow" : "hover-elevate"} touch-target`}
                   onClick={() => setSelectedPlaylist(selectedPlaylist === "morning" ? null : "morning")}
                   data-testid="button-playlist-morning"
                 >
@@ -239,7 +245,7 @@ export default function Create() {
                 <Button
                   type="button"
                   variant={selectedPlaylist === "daytime" ? "default" : "outline"}
-                  className="h-auto py-4 sm:py-3 flex flex-col items-center gap-2 hover-elevate touch-target"
+                  className={`h-auto py-4 sm:py-3 flex flex-col items-center gap-2 ${selectedPlaylist === "daytime" ? "musical-glow" : "hover-elevate"} touch-target`}
                   onClick={() => setSelectedPlaylist(selectedPlaylist === "daytime" ? null : "daytime")}
                   data-testid="button-playlist-daytime"
                 >
@@ -249,7 +255,7 @@ export default function Create() {
                 <Button
                   type="button"
                   variant={selectedPlaylist === "bedtime" ? "default" : "outline"}
-                  className="h-auto py-4 sm:py-3 flex flex-col items-center gap-2 hover-elevate touch-target"
+                  className={`h-auto py-4 sm:py-3 flex flex-col items-center gap-2 ${selectedPlaylist === "bedtime" ? "musical-glow" : "hover-elevate"} touch-target`}
                   onClick={() => setSelectedPlaylist(selectedPlaylist === "bedtime" ? null : "bedtime")}
                   data-testid="button-playlist-bedtime"
                 >
@@ -262,32 +268,35 @@ export default function Create() {
             {/* Generate Button */}
             <Button
               size="lg"
-              className="w-full"
+              className="w-full musical-glow-strong gap-2"
               onClick={handleGenerate}
               disabled={generateSongMutation.isPending}
               data-testid="button-generate"
             >
               {generateSongMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                   Generating Your Song...
                 </>
               ) : (
                 <>
-                  <Music className="mr-2 h-5 w-5" />
+                  <Disc3 className="h-5 w-5" />
                   Generate Mantra Song
                 </>
               )}
             </Button>
 
             {generateSongMutation.isPending && (
-              <div className="text-center space-y-2">
-                <p className="text-sm text-muted-foreground" data-testid="text-generating-status">
-                  Creating lyrics and composing your personalized mantra song...
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  This may take 3-6 minutes. AI is composing your unique song with vocals and instruments.
-                </p>
+              <div className="text-center space-y-3">
+                <WaveformBars count={7} className="justify-center h-12" animated />
+                <div>
+                  <p className="text-sm text-muted-foreground" data-testid="text-generating-status">
+                    Creating lyrics and composing your personalized mantra song...
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This may take 3-6 minutes. AI is composing your unique song with vocals and instruments.
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>
