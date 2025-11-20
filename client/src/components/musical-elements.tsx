@@ -12,7 +12,7 @@ export function WaveformBars({ count = 5, className = "", animated = true }: Wav
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className={`w-1 bg-primary rounded-full ${animated ? 'animate-wave-pulse' : ''}`}
+          className={`w-1 bg-primary rounded-full ${animated ? 'animate-wave-pulse motion-reduce:animate-none' : ''}`}
           style={{
             height: `${Math.random() * 20 + 10}px`,
             animationDelay: animated ? `${i * 0.1}s` : undefined,
@@ -39,7 +39,7 @@ export function VinylRecord({ size = 'md', spinning = false, className = "" }: V
   return (
     <div className={`relative ${sizeClasses[size]} ${className}`}>
       <Disc3 
-        className={`h-full w-full text-primary ${spinning ? 'animate-vinyl-spin' : ''}`}
+        className={`h-full w-full text-primary ${spinning ? 'animate-vinyl-spin motion-reduce:animate-none' : ''}`}
       />
     </div>
   );
@@ -53,7 +53,7 @@ interface MusicNoteProps {
 
 export function MusicNote({ floating = false, className = "", style }: MusicNoteProps) {
   return (
-    <Music2 className={`text-primary/30 ${floating ? 'animate-note-float' : ''} ${className}`} style={style} />
+    <Music2 className={`text-primary/30 ${floating ? 'animate-note-float motion-reduce:animate-none' : ''} ${className}`} style={style} />
   );
 }
 

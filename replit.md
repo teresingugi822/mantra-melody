@@ -2,52 +2,7 @@
 
 ## Overview
 
-Mantra Music is a web application that transforms personal mantras, affirmations, and goals into personalized songs. Users write their mantras, select a music genre (soul, blues, hip-hop, reggae, pop, or acoustic), and the application generates custom songs with AI-powered lyrics and music. The app organizes songs into curated playlists (Morning Motivation, Daytime Energy, Bedtime Calm) or allows users to build their own library.
-
-**Core Purpose**: Create an emotionally uplifting, transformation-focused experience that empowers users through personalized music generated from their own words.
-
-## Recent Changes
-
-### Enhanced Lyrics Sync (November 2025)
-Implemented advanced karaoke-style lyrics display with preview timing and 5-tier visual hierarchy:
-- **2-Second Lead Time**: Lyrics appear 2 seconds before they're sung, giving users time to read ahead
-- **5-Tier Visual Hierarchy**:
-  1. Currently singing: Extra large (3xl-5xl), bold, primary color, scale-110, 100% opacity, glow effect
-  2. Next line (upcoming soon): Large (2xl-3xl), semibold, foreground color, scale-105, 90% opacity, subtle glow
-  3. Line after next: Medium (xl-2xl), normal weight, 75% opacity
-  4. Past lines: Small (lg-xl), muted, 60% opacity
-  5. Far future lines: Very small (base-lg), very muted, 40% opacity
-- **Smooth Transitions**: 700ms duration with ease-out timing for scale, opacity, and color changes
-- **Auto-Scroll**: Keeps highlighted line centered during playback with smooth scrolling behavior
-- **Responsive Design**: Text sizes scale across mobile/tablet/desktop breakpoints
-
-### Mobile Optimization (November 2025)
-Comprehensive mobile-friendly improvements ensuring production-ready experience on smartphones:
-- **Touch Targets**: All interactive controls meet 44x44px minimum (WCAG 2.5.5 compliance)
-  - Header buttons: 44px on mobile, auto-sized on desktop
-  - Audio player controls: Play/Pause (56px), Previous/Next/Loop (44px), action buttons (44px)
-  - Play All button: Full-width on mobile with 44px height
-  - Song card buttons: Always visible on mobile (44x44px), hover-only on desktop
-- **Accessibility**: All icon-only buttons include aria-labels for screen readers
-  - Navigation: "Open menu", "Back to Home", "Create New Song", "View Library"
-  - Audio controls: "Download song", "Share song", "Show/Hide lyrics", "Play song"
-  - Song actions: "Play song", "Edit song title", "Delete song"
-- **Responsive Layout**: Mobile-first design with proper stacking
-  - Hamburger menu navigation for mobile (Sheet component)
-  - Audio player controls stack vertically on mobile
-  - Volume slider stacks vertically on mobile
-  - Text sizing scales: base (text-2xl) to desktop (sm:text-4xl)
-  - Spacing reduces on small screens (py-6 sm:py-12, p-4 sm:p-6)
-- **Visual Optimizations**: Icon-only buttons on mobile to save space while maintaining accessibility
-- **Sticky Controls**: Audio player card stays at bottom with progress bar and volume always accessible
-
-### Loop & Continuous Playback (November 2025)
-Implemented comprehensive playback controls with three loop modes and continuous library playback:
-- **Loop Modes**: Off (stops after song), Song (repeat current track), Library (continuous playback with wrap-around)
-- **Play All**: One-click button starts continuous playback through all ready songs
-- **Smart Navigation**: Next/Previous buttons skip incomplete songs and wrap around in library mode
-- **Single-Song Loop**: Force remount using wrapCounter to restart audio when wrapping to same song
-- **State Sync**: Loop mode changes propagate from AudioPlayer to Library page via callback
+Mantra Music is a web application designed to transform users' personal mantras, affirmations, and goals into personalized songs. Users can input their mantras, select a music genre (soul, blues, hip-hop, reggae, pop, or acoustic), and the application, leveraging AI, generates custom songs with unique lyrics and music. The app facilitates organization of these songs into curated playlists (Morning Motivation, Daytime Energy, Bedtime Calm) or allows users to create their own song libraries. The core purpose is to provide an emotionally uplifting and transformative experience through personalized, AI-generated music based on user-defined intentions.
 
 ## User Preferences
 
@@ -55,180 +10,48 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Frontend Architecture
+### Frontend
 
-**Framework**: React 18+ with TypeScript, using Vite as the build tool and development server.
+The frontend is built with React 18+ and TypeScript, utilizing Vite for development and bundling. Shadcn/ui, based on Radix UI primitives and styled with Tailwind CSS, forms the UI component system, featuring a "new-york" style variant with custom HSL-based theming for light/dark modes. Routing is handled by Wouter, supporting authenticated and unauthenticated user flows for different pages (Landing, Home, Create, Library, Playlists). Authentication state is managed via a `useAuth()` hook. Server state and API interactions are managed with TanStack Query, avoiding a global state management library. The music playback system, managed by an `AudioPlayer` component, supports three loop modes (off, song, library) and continuous playback, with state synchronization to the Library page. The design system emphasizes soothing gradients, uplifting imagery, Inter and Playfair Display typography, Tailwind-based spacing, glass-morphism effects, and a mobile-first responsive layout.
 
-**UI Component System**: Shadcn/ui components built on Radix UI primitives with Tailwind CSS for styling. The design follows a "new-york" style variant with custom theming based on HSL color variables for light/dark mode support.
+### Backend
 
-**Routing**: Client-side routing using Wouter (lightweight React Router alternative) with authentication-based routing:
-- Landing page (`/`) - Shown to unauthenticated users with login/signup options
-- Home page (`/`) - Shown to authenticated users with full app access
-- Create/compose page (`/create`) - Authenticated only
-- Library view (`/library`) - Authenticated only with Play All functionality
-- Playlist views (`/playlists/:type`) - Authenticated only
-
-**Authentication Hook**: `useAuth()` hook provides user state, loading status, and authentication status throughout the app
-
-**State Management**: TanStack Query (React Query) for server state management, API requests, and caching. No global state management library - component state and React Query handle all data flow.
-
-**Music Playback System**:
-- **AudioPlayer Component**: Manages playback state, loop modes, and auto-play logic
-  - Three loop modes: 'off', 'song', 'library'
-  - Auto-play effects for library mode (on mode change and song change)
-  - Visual indicators (Repeat icon for library, Repeat1 for song)
-  - Callback system for syncing loop mode changes to parent
-- **Library Page**: Manages song selection and continuous playback
-  - "Play All" button enables library loop mode and starts first ready song
-  - Ready songs filter (status='completed' + audioUrl present)
-  - Wrap-around navigation in both directions (next/previous)
-  - wrapCounter state forces AudioPlayer remount for single-song loops
-  - hasNext/hasPrevious computed based on playAllMode for correct control states
-
-**Design System**: Custom design guidelines inspired by wellness apps (Calm/Headspace) and music platforms (Spotify), emphasizing:
-- Soothing gradients and uplifting imagery
-- Typography: Inter (UI/body) and Playfair Display (mantras/headings) from Google Fonts
-- Spacing based on Tailwind's standardized units (2, 4, 6, 8, 12, 16, 20, 24)
-- Glass-morphism effects with backdrop-blur
-- Responsive layouts with mobile-first approach
-
-### Backend Architecture
-
-**Server Framework**: Express.js running on Node.js with TypeScript.
-
-**API Design**: RESTful API with JSON responses:
-- `GET /api/songs` - Retrieve all songs
-- `GET /api/playlists/:type/songs` - Get songs by playlist type
-- `POST /api/songs/generate` - Generate new song from mantra
-
-**Request Handling**: Custom middleware for logging, JSON parsing with raw body capture for webhooks, and request timing.
-
-**Development Setup**: Vite middleware integration for HMR (Hot Module Replacement) in development, with separate build output for production.
+The backend is an Express.js application built with Node.js and TypeScript, providing a RESTful API with JSON responses. Key endpoints include fetching songs and playlists, and generating new songs. It incorporates custom middleware for logging and JSON parsing.
 
 ### Data Layer
 
-**ORM**: Drizzle ORM for type-safe database queries and schema management.
-
-**Database Schema**:
-- `users` table - User accounts with username/password authentication (id, username unique, password hashed, optional email, timestamps)
-- `sessions` table - PostgreSQL session storage (managed by connect-pg-simple)
-- `mantras` table - User-written text with UUID primary keys and userId foreign key
-- `songs` table - Generated songs linked to mantras and users, includes title, genre, lyrics, audio URL, status (pending/generating/completed/error), optional playlist type, voice characteristics (vocalGender, vocalStyle), useExactLyrics flag, and userId foreign key
-- `playlists` table - Curated and custom playlists with name, type, and description
-
-**Migration Strategy**: Drizzle Kit for schema migrations stored in `/migrations` directory.
-
-**Type Safety**: Zod schemas generated from Drizzle schema for runtime validation, ensuring type consistency between database, API, and frontend.
+Drizzle ORM provides type-safe database queries and schema management for a PostgreSQL database. The schema includes `users`, `sessions`, `mantras`, `songs`, and `playlists` tables, with relationships defining user ownership of mantras and songs. Drizzle Kit manages schema migrations. Zod schemas generated from Drizzle ensure type consistency across the application stack.
 
 ### AI Integration
 
-**Lyrics Generation**: OpenAI GPT-4o integration via Replit's AI Integrations service (proxy that eliminates need for personal API keys). The system transforms user mantras into song lyrics while preserving the core message and emotional intent. Enhanced error handling validates non-empty responses and provides detailed error messages.
-
-**Music Generation**: SunoAPI.org integration for text-to-music synthesis with voice customization. Users select vocal gender (male/female) and style (warm, powerful, soft, energetic, soulful, gritty). Production-ready error handling with 180-second polling timeout.
-
-**Critical Configuration**: Suno API in custom mode requires specific field mapping:
-- `prompt`: Contains the actual **lyrics text to be sung** (3000-5000 char limit)
-- `style`: Contains the **genre/style description** (e.g., "soul, warm")
-- `customMode: true` + `instrumental: false` + `vocalGender` ensures vocals sing the lyrics
-
-**Workflow**:
-1. User submits mantra text, genre selection, and voice characteristics
-2. Backend creates mantra record in database
-3. OpenAI generates song title using `gpt-4o` model
-4. OpenAI generates lyrics based on mantra (exact or transformed) with verse/chorus structure
-5. Song record created with title, lyrics, and "generating" status
-6. Suno API generates audio with lyrics in `prompt` field and genre in `style` field
-7. Backend polls Suno API every 3 seconds (max 180 seconds) for completion
-8. On success: Song record updated with audio URL and "completed" status
-9. On failure: Song record updated to "error" status with HTTP 500 response
+AI integration is central to song generation:
+- **Lyrics Generation**: OpenAI GPT-4o, accessed via Replit's AI Integrations service, generates song titles and transforms user mantras into structured lyrics, preserving emotional intent.
+- **Music Generation**: SunoAPI.org is used for text-to-music synthesis, offering vocal customization (gender, style). It requires specific field mapping for custom mode, including lyrics in the `prompt` and genre in the `style` field. The workflow involves the backend creating mantra records, generating titles and lyrics with OpenAI, creating song records, generating audio with Suno, and polling Suno for completion updates.
 
 ### Authentication & Sessions
 
-**Multi-User Authentication**: The application uses username/password authentication for secure user access with session-based state management.
-
-**Implementation Details**:
-- Auth Module: Passport.js local strategy configured in `server/auth/local.ts`
-- Password Hashing: bcryptjs with 12 salt rounds for secure password storage
-- Session Storage: PostgreSQL-backed sessions using `connect-pg-simple`
-- Session Secret: Stored in `SESSION_SECRET` environment variable
-- Cookie Settings: Secure, HTTP-only, SameSite=Lax with 7-day expiration
-
-**Authentication Flow**:
-1. Unauthenticated users see landing page at `/` with signup/login options
-2. Signup via `/signup` page - creates new user with hashed password
-3. Login via `/login` page - validates credentials and creates session
-4. Authenticated users redirected to home page with access to all features
-5. Logout via logout button - POST to `/api/auth/logout`, destroys session and redirects to landing
-
-**User Data Model**:
-- `users` table stores user accounts (id, username, password hash, optional email, timestamps)
-- Username is unique and required for authentication
-- Password is hashed with bcryptjs before storage (never stored as plaintext)
-- All user-owned resources (mantras, songs) include `userId` foreign key
-
-**Data Isolation & Security**:
-- All API endpoints protected with `isAuthenticated` middleware
-- Storage layer enforces user scoping for all CRUD operations
-- Methods like `getSong(id, userId)` ensure users can only access their own data
-- Direct database access avoided - all operations go through storage abstraction
-- Failed ownership checks return 404 (not 403) to prevent information leakage
-- Password verification uses constant-time comparison via bcrypt.compare()
-
-**API Routes**:
-- `GET /api/auth/user` - Returns current user info or 401 if unauthenticated
-- `POST /api/auth/signup` - Creates new user account with username and password
-- `POST /api/auth/login` - Authenticates user credentials and creates session
-- `POST /api/auth/logout` - Destroys session and logs out user
-- All `/api/songs/*` and `/api/playlists/*` routes require authentication
+The application uses multi-user username/password authentication. Passport.js with a local strategy and bcryptjs for password hashing secures user accounts. Sessions are PostgreSQL-backed using `connect-pg-simple`, with secure cookie settings. All API endpoints are protected by `isAuthenticated` middleware, ensuring data isolation and security by enforcing user scoping for all CRUD operations, returning 404s for unauthorized access attempts.
 
 ## External Dependencies
 
 ### Third-Party APIs
 
-**Replit AI Integrations (OpenAI Proxy)**:
-- Environment: `AI_INTEGRATIONS_OPENAI_BASE_URL`, `AI_INTEGRATIONS_OPENAI_API_KEY`
-- Model: `gpt-4o` (latest OpenAI chat completion model as of 2025)
-- Purpose: Generate song titles and transform mantras into structured lyrics
-- Managed service eliminates need for personal OpenAI API keys
-- Error handling: Validates non-empty responses, provides fallback for titles
-
-**SunoAPI.org Music Generation**:
-- Environment: `SUNO_API_KEY`
-- Purpose: Text-to-music synthesis with vocal generation
-- Base URL: `https://api.sunoapi.org`
-- Generate endpoint: `/api/v1/generate` (POST)
-  - `prompt`: Lyrics text to sing (required in custom mode)
-  - `style`: Genre/style description (required)
-  - `title`: Song title (required)
-  - `customMode: true` (enables manual lyric control)
-  - `instrumental: false` (enables vocals)
-  - `vocalGender`: "m" or "f" (optional)
-  - `model`: "V4" (Suno's AI model version)
-  - `callBackUrl`: Webhook for generation updates
-- Polling endpoint: `/api/v1/generate/record-info?taskId=...` (GET)
-- Polling strategy: 3-second intervals, 60 attempts max (180 seconds total)
-- Error handling: Exception-based with HTTP 500 responses for failures
+- **Replit AI Integrations (OpenAI Proxy)**: Used for `gpt-4o` model to generate song titles and lyrics.
+- **SunoAPI.org**: Used for text-to-music synthesis, providing vocal generation with customizable gender and style.
 
 ### Database
 
-**PostgreSQL via Neon**:
-- Environment: `DATABASE_URL`
-- Connection: Neon Serverless driver with WebSocket support
-- Schema managed through Drizzle ORM
-- Connection pooling via @neondatabase/serverless
+- **PostgreSQL via Neon**: Serverless driver used for database connection and management.
 
 ### UI Component Libraries
 
-**Radix UI**: Unstyled, accessible component primitives for building the design system (accordion, dialog, dropdown, slider, toast, etc.)
-
-**Embla Carousel**: Touch-friendly carousel component for potential playlist/song browsing features
+- **Radix UI**: Provides unstyled, accessible component primitives.
+- **Embla Carousel**: Used for touch-friendly carousel functionality.
 
 ### Development Tools
 
-**Vite Plugins**:
-- Runtime error modal overlay
-- Replit-specific dev tools (cartographer for code navigation, dev banner)
+- **Vite Plugins**: For development workflow enhancements.
 
 ### Asset Management
 
-Images stored in `/attached_assets/generated_images/` for hero sections and playlist covers (morning, daytime, bedtime themes).
+- **`/attached_assets/generated_images/`**: Stores hero section and playlist cover images.
