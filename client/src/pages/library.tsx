@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { SongCard } from "@/components/song-card";
 import { AudioPlayer } from "@/components/audio-player";
-import { Music, ArrowLeft, Plus, Loader2, PlayCircle } from "lucide-react";
+import { Music, ArrowLeft, Plus, Loader2, PlayCircle, Disc3 } from "lucide-react";
+import { WaveformBars, VinylRecord, WaveformPattern } from "@/components/musical-elements";
 import type { Song } from "@shared/schema";
 
 export default function Library() {
@@ -85,7 +86,8 @@ export default function Library() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        <WaveformPattern className="opacity-20" />
+        <div className="container relative flex h-16 items-center justify-between px-4 md:px-6">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
@@ -97,16 +99,16 @@ export default function Library() {
             <span className="hidden sm:inline">Back to Home</span>
           </Button>
           <div className="flex items-center gap-2">
-            <Music className="h-6 w-6 text-primary" />
+            <VinylRecord size="sm" spinning className="text-primary" />
             <span className="text-lg sm:text-xl font-bold font-serif">Mantra Music</span>
           </div>
           <Button
             onClick={() => navigate("/create")}
-            className="h-11 sm:h-auto"
+            className="h-11 sm:h-auto musical-glow gap-2"
             aria-label="Create New Song"
             data-testid="button-create-new"
           >
-            <Plus className="h-5 w-5 sm:mr-2" />
+            <Plus className="h-5 w-5" />
             <span className="hidden sm:inline">Create New</span>
           </Button>
         </div>
@@ -117,20 +119,23 @@ export default function Library() {
         <div className="mb-6 sm:mb-12">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-2xl sm:text-4xl font-bold font-serif mb-2" data-testid="text-page-title">
+              <div className="flex items-center gap-3 mb-3">
+                <WaveformBars count={5} className="h-10" animated />
+              </div>
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold font-serif mb-2 bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent" data-testid="text-page-title">
                 Your Mantra Library
               </h1>
-              <p className="text-base sm:text-lg text-muted-foreground" data-testid="text-page-subtitle">
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed" data-testid="text-page-subtitle">
                 All your personalized mantra songs in one place
               </p>
             </div>
             {songs && songs.length > 0 && (
               <Button
                 onClick={handlePlayAll}
-                className="gap-2 w-full sm:w-auto h-11 sm:h-10"
+                className="gap-2 w-full sm:w-auto h-11 sm:h-10 musical-glow-strong"
                 data-testid="button-play-all"
               >
-                <PlayCircle className="h-5 w-5" />
+                <Disc3 className="h-5 w-5" />
                 Play All
               </Button>
             )}
@@ -168,15 +173,15 @@ export default function Library() {
             ))
           ) : (
             <div className="text-center py-12">
-              <Music className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2" data-testid="text-empty-title">
+              <VinylRecord size="lg" spinning className="mx-auto mb-6 opacity-30" />
+              <h3 className="text-lg font-semibold font-serif mb-2" data-testid="text-empty-title">
                 No Songs Yet
               </h3>
               <p className="text-muted-foreground mb-6" data-testid="text-empty-description">
                 Create your first mantra song to start building your library
               </p>
-              <Button onClick={() => navigate("/create")} data-testid="button-create-first">
-                <Plus className="mr-2 h-4 w-4" />
+              <Button onClick={() => navigate("/create")} className="musical-glow gap-2" data-testid="button-create-first">
+                <Plus className="h-4 w-4" />
                 Create Your First Song
               </Button>
             </div>
