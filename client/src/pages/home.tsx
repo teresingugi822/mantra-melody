@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Music, Pen, Headphones, Sparkles, Heart, Sun, Moon, LogOut, Menu } from "lucide-react";
+import { Music, Pen, Headphones, Sparkles, Heart, Sun, Moon, LogOut, Menu, Disc3 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { WaveformBars, VinylRecord, MusicNote, WaveformPattern } from "@/components/musical-elements";
 import heroImage from "@assets/generated_images/Hero_sunrise_meditation_scene_7b6760e5.png";
 
 export default function Home() {
@@ -29,9 +30,10 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        <WaveformPattern className="opacity-20" />
+        <div className="container relative flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
-            <Music className="h-6 w-6 text-primary" data-testid="icon-logo" />
+            <VinylRecord size="sm" spinning className="text-primary" data-testid="icon-logo" />
             <span className="text-lg sm:text-xl font-bold font-serif" data-testid="text-logo">Mantra Music</span>
           </div>
           
@@ -51,7 +53,10 @@ export default function Home() {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-2">
             <Link href="/create">
-              <Button data-testid="button-get-started">Get Started</Button>
+              <Button className="musical-glow gap-2" data-testid="button-get-started">
+                <Sparkles className="h-4 w-4" />
+                Get Started
+              </Button>
             </Link>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -115,36 +120,51 @@ export default function Home() {
           style={{ backgroundImage: `url(${heroImage})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60 backdrop-blur-sm" />
+        <WaveformPattern className="opacity-10" />
+        
+        {/* Floating musical decorations */}
+        <MusicNote floating className="absolute top-20 left-10 h-10 w-10 text-white/20 hidden lg:block" />
+        <MusicNote floating className="absolute top-32 right-20 h-8 w-8 text-white/20 hidden lg:block" style={{ animationDelay: '0.5s' }} />
+        <MusicNote floating className="absolute bottom-32 right-1/4 h-9 w-9 text-white/20 hidden xl:block" style={{ animationDelay: '1s' }} />
         
         <div className="relative z-10 container px-4 md:px-6 text-center text-white">
-          <h1 className="text-4xl md:text-6xl font-bold font-serif mb-6" data-testid="text-hero-title">
+          <div className="flex justify-center mb-6">
+            <WaveformBars count={7} className="h-16 opacity-60" animated />
+          </div>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-serif mb-6 leading-tight" data-testid="text-hero-title">
             Turn Your Goals into Songs<br />that Move You
           </h1>
-          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-white/90" data-testid="text-hero-subtitle">
+          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-white/90 leading-relaxed" data-testid="text-hero-subtitle">
             Transform your affirmations and daily mantras into personalized music. 
             Start your morning, stay inspired during the day, and unwind at night with your own soundtrack for growth.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link href="/create">
-              <Button size="lg" className="bg-primary/90 backdrop-blur-md hover:bg-primary text-lg px-8" data-testid="button-create-first-song">
+              <Button size="lg" className="bg-primary/90 backdrop-blur-md hover:bg-primary musical-glow-strong text-lg px-8 gap-2" data-testid="button-create-first-song">
+                <Sparkles className="h-5 w-5" />
                 Create Your First Mantra Song
               </Button>
             </Link>
             <Link href="/library">
-              <Button size="lg" variant="outline" className="bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20 text-lg px-8" data-testid="button-browse-library">
+              <Button size="lg" variant="outline" className="bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20 text-lg px-8 gap-2" data-testid="button-browse-library">
+                <Disc3 className="h-5 w-5" />
                 Browse Library
               </Button>
             </Link>
           </div>
-          <p className="mt-6 text-sm text-white/70" data-testid="text-user-count">
-            Join thousands transforming their mindset through music
-          </p>
+          <div className="mt-8 flex items-center justify-center gap-2 text-sm text-white/70">
+            <VinylRecord size="sm" className="opacity-50" />
+            <p data-testid="text-user-count">
+              Join thousands transforming their mindset through music
+            </p>
+          </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-muted/30">
-        <div className="container px-4 md:px-6">
+      <section id="how-it-works" className="relative py-20 bg-muted/30 overflow-hidden">
+        <WaveformPattern className="opacity-10" />
+        <div className="container relative px-4 md:px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold font-serif mb-4" data-testid="text-how-it-works-title">
               How It Works
@@ -155,39 +175,51 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="text-center hover-elevate transition-all" data-testid="card-step-1">
-              <CardContent className="pt-8 pb-8">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Card className="relative overflow-hidden text-center hover-elevate transition-all" data-testid="card-step-1">
+              <WaveformPattern className="opacity-5" />
+              <CardContent className="relative pt-8 pb-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6 musical-glow">
                   <Pen className="h-8 w-8 text-primary" data-testid="icon-write" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Write Your Mantras</h3>
-                <p className="text-muted-foreground">
-                  Express your goals, affirmations, and aspirations in your own words. Be authentic and personal.
+                <h3 className="text-xl font-bold font-serif mb-3">Write Your Mantras</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Express your goals, affirmations, and aspirations in your own authentic words.
                 </p>
+                <div className="mt-6">
+                  <WaveformBars count={5} className="justify-center" />
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="text-center hover-elevate transition-all" data-testid="card-step-2">
-              <CardContent className="pt-8 pb-8">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Music className="h-8 w-8 text-primary" data-testid="icon-music" />
+            <Card className="relative overflow-hidden text-center hover-elevate transition-all" data-testid="card-step-2">
+              <WaveformPattern className="opacity-5" />
+              <CardContent className="relative pt-8 pb-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6 musical-glow">
+                  <Disc3 className="h-8 w-8 text-primary" data-testid="icon-music" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Choose Your Genre</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl font-bold font-serif mb-3">Choose Your Vibe</h3>
+                <p className="text-muted-foreground leading-relaxed">
                   Select from soul, blues, hip-hop, reggae, pop, or acoustic to match your mood and energy.
                 </p>
+                <div className="mt-6">
+                  <WaveformBars count={5} className="justify-center" />
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="text-center hover-elevate transition-all" data-testid="card-step-3">
-              <CardContent className="pt-8 pb-8">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Card className="relative overflow-hidden text-center hover-elevate transition-all" data-testid="card-step-3">
+              <WaveformPattern className="opacity-5" />
+              <CardContent className="relative pt-8 pb-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6 musical-glow">
                   <Headphones className="h-8 w-8 text-primary" data-testid="icon-listen" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Listen & Transform</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl font-bold font-serif mb-3">Listen & Transform</h3>
+                <p className="text-muted-foreground leading-relaxed">
                   Your personalized mantra song is created instantly. Listen, save, and replay whenever you need motivation.
                 </p>
+                <div className="mt-6">
+                  <WaveformBars count={5} className="justify-center" />
+                </div>
               </CardContent>
             </Card>
           </div>
