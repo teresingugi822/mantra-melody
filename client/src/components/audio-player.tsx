@@ -584,7 +584,7 @@ export function AudioPlayer({
                       disabled={!isSongReady}
                     >
                       <Download className="h-4 w-4" />
-                      <span className="hidden xs:inline">Download</span>
+                      <span className="hidden sm:inline">Download</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -615,7 +615,7 @@ export function AudioPlayer({
                   disabled={!isSongReady}
                 >
                   <Share2 className="h-4 w-4" />
-                  <span className="hidden xs:inline">Share</span>
+                  <span className="hidden sm:inline">Share</span>
                 </Button>
                 {song.lyrics && (
                   <Button
@@ -628,12 +628,12 @@ export function AudioPlayer({
                     {showLyrics ? (
                       <>
                         <X className="h-4 w-4" />
-                        <span className="hidden xs:inline">Hide</span> Lyrics
+                        <span className="hidden sm:inline">Hide</span> Lyrics
                       </>
                     ) : (
                       <>
                         <Music2 className="h-4 w-4" />
-                        <span className="hidden xs:inline">Show</span> Lyrics
+                        <span className="hidden sm:inline">Show</span> Lyrics
                       </>
                     )}
                   </Button>
