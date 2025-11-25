@@ -1,0 +1,57 @@
+{
+  "name": "mantra-music-mobile",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "dev": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "eject": "expo eject",
+    "build:ios": "eas build --platform ios",
+    "build:android": "eas build --platform android",
+    "submit:ios": "eas submit --platform ios",
+    "submit:android": "eas submit --platform android"
+  },
+  "dependencies": {
+    "expo": "~51.0.0",
+    "expo-av": "~14.0.0",
+    "expo-file-system": "~16.0.0",
+    "expo-media-library": "~16.0.0",
+    "expo-document-picker": "~11.0.0",
+    "expo-sharing": "~12.0.0",
+    "expo-secure-store": "~12.0.0",
+    "react": "18.2.0",
+    "react-native": "0.74.0",
+    "react-native-gesture-handler": "~2.14.0",
+    "react-native-reanimated": "~3.10.0",
+    "react-native-screens": "~3.31.0",
+    "@react-navigation/native": "^6.1.0",
+    "@react-navigation/bottom-tabs": "^6.5.0",
+    "@react-navigation/stack": "^6.3.0",
+    "@react-query/native": "^3.39.0",
+    "@tanstack/react-query": "^5.0.0",
+    "@react-native-async-storage/async-storage": "^1.23.0",
+    "axios": "^1.6.0",
+    "zod": "^3.22.0",
+    "date-fns": "^2.30.0",
+    "expo-splash-screen": "~0.27.0",
+    "expo-font": "~11.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "~18.2.0",
+    "@types/react-native": "~0.74.0",
+    "typescript": "^5.1.0",
+    "expo-constants": "~16.0.0"
+  },
+  "expo": {
+    "plugins": [
+      "expo-av",
+      "expo-file-system",
+      "expo-media-library",
+      "expo-document-picker",
+      "expo-sharing"
+    ]
+  }
+}

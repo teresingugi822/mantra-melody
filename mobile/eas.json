@@ -1,0 +1,29 @@
+{
+  "cli": {
+    "version": ">= 5.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://mantra-music-production.replit.dev/api"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "YOUR_APP_ID"
+      },
+      "android": {
+        "androidPackage": "com.mantramusic.app"
+      }
+    }
+  }
+}

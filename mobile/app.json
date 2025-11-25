@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Mantra Music",
+    "slug": "mantra-music",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTabletMode": true,
+      "bundleIdentifier": "com.mantramusic.app",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "We need microphone access for recording audio",
+        "NSPhotoLibraryUsageDescription": "We need access to your photos to save videos",
+        "NSCameraUsageDescription": "We need camera access for future features"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.mantramusic.app",
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "INTERNET"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "mantramusic",
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": "We use your microphone to record audio during playback"
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "We need access to your photos to save videos",
+          "savePhotosPermission": "We need permission to save videos to your photo library",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ]
+  }
+}
