@@ -30,7 +30,6 @@
     "@react-navigation/native": "^6.1.0",
     "@react-navigation/bottom-tabs": "^6.5.0",
     "@react-navigation/stack": "^6.3.0",
-    "@react-query/native": "^3.39.0",
     "@tanstack/react-query": "^5.0.0",
     "@react-native-async-storage/async-storage": "^1.23.0",
     "axios": "^1.6.0",
