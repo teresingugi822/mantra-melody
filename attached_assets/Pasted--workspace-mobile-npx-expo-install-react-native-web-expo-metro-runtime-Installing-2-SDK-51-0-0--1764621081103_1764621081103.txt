@@ -1,0 +1,39 @@
+~/workspace/mobile$ npx expo install react-native-web @expo/metro-runtime
+› Installing 2 SDK 51.0.0 compatible native modules using npm
+> npm install
+npm error code ERESOLVE
+npm error ERESOLVE unable to resolve dependency tree
+npm error
+npm error While resolving: mantra-music-mobile@1.0.0
+npm error Found: react@18.3.1
+npm error node_modules/react
+npm error   react@"18.3.1" from the root project
+npm error
+npm error Could not resolve dependency:
+npm error peer react@"18.2.0" from react-native@0.74.0
+npm error node_modules/react-native
+npm error   react-native@"0.74.0" from the root project
+npm error   peer react-native@"*" from @expo/metro-runtime@3.2.3
+npm error   node_modules/@expo/metro-runtime
+npm error     @expo/metro-runtime@"~3.2.3" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/runner/.npm/_logs/2025-12-01T20_30_26_401Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-12-01T20_30_26_401Z-debug-0.log
+Error: npm install exited with non-zero code: 1
+Error: npm install exited with non-zero code: 1
+    at ChildProcess.completionListener (/home/runner/workspace/mobile/node_modules/@expo/spawn-async/build/spawnAsync.js:42:23)
+    at Object.onceWrapper (node:events:639:26)
+    at ChildProcess.emit (node:events:524:28)
+    at maybeClose (node:internal/child_process:1104:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5)
+    ...
+    at spawnAsync (/home/runner/workspace/mobile/node_modules/@expo/spawn-async/build/spawnAsync.js:7:23)
+    at NpmPackageManager.runAsync (/home/runner/workspace/mobile/node_modules/@expo/package-manager/build/node/BasePackageManager.js:41:42)
+    at /home/runner/workspace/mobile/node_modules/@expo/package-manager/build/node/NpmPackageManager.js:36:20
+    at /home/runner/workspace/mobile/node_modules/@expo/package-manager/build/utils/spawn.js:14:34
