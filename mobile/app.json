@@ -34,9 +34,6 @@
         "INTERNET"
       ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "scheme": "mantramusic",
     "plugins": [
       [
