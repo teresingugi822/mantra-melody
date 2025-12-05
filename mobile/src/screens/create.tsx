@@ -78,21 +78,27 @@ export default function CreateScreen() {
         {/* Genre Selection */}
         <View style={styles.section}>
           <Text style={styles.label}>Genre</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={genre}
-              onValueChange={setGenre}
-              enabled={!isPending}
-              style={styles.picker}
-            >
-              {GENRES.map((g) => (
-                <Picker.Item
-                  key={g}
-                  label={g.charAt(0).toUpperCase() + g.slice(1)}
-                  value={g}
-                />
-              ))}
-            </Picker>
+          <View style={styles.genreOptions}>
+            {GENRES.map((g) => (
+              <TouchableOpacity
+                key={g}
+                style={[
+                  styles.genreButton,
+                  genre === g && styles.genreButtonActive,
+                ]}
+                onPress={() => setGenre(g)}
+                disabled={isPending}
+              >
+                <Text
+                  style={[
+                    styles.genreButtonText,
+                    genre === g && styles.genreButtonTextActive,
+                  ]}
+                >
+                  {g.charAt(0).toUpperCase() + g.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -209,14 +215,32 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 4,
   },
-  pickerContainer: {
+  genreOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 8,
+  },
+  genreButton: {
+    width: '48%',
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 8,
-    overflow: 'hidden',
+    padding: 12,
+    marginBottom: 8,
+    marginRight: '2%',
+    alignItems: 'center',
   },
-  picker: {
-    height: 50,
+  genreButtonActive: {
+    backgroundColor: '#a855f7',
+    borderColor: '#a855f7',
+  },
+  genreButtonText: {
+    color: '#666',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  genreButtonTextActive: {
+    color: '#fff',
   },
   rhythmOptions: {
     flexDirection: 'row',
