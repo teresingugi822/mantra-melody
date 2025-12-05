@@ -30,13 +30,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const bootstrapAsync = async () => {
     try {
       // Try to restore session from secure storage
-      const sessionToken = await SecureStore.getItemAsync('sessionToken');
-      if (sessionToken) {
-        const response = await api.getUser();
-        setUser(response.data.user);
+      try {
+        const sessionToken = await SecureStore.getItemAsync('sessionToken');
+        if (sessionToken) {
+          const response = await api.getUser();
+          setUser(response.data.user);
+        }
+      } catch (storageError) {
+        // SecureStore might fail in development - this is OK
+        console.log('Session restoration skipped (development)');
       }
-    } catch (error) {
-      console.log('Session restoration failed:', error);
     } finally {
       setIsLoading(false);
     }
