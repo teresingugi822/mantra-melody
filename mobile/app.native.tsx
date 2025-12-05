@@ -23,7 +23,7 @@ function HomeTabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: string;
+          let iconName: string = 'home';
           
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
