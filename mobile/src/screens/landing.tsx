@@ -108,12 +108,12 @@ export default function LandingScreen() {
             description="Express your intentions and affirmations"
           />
           <FeatureCard
-            icon="music"
+            icon="musical-note"
             title="Choose Genre"
             description="Soul, Blues, Hip-Hop, Reggae, Pop, Acoustic"
           />
           <FeatureCard
-            icon="sparkles"
+            icon="star"
             title="AI Generation"
             description="Get unique songs with custom lyrics and music"
           />
